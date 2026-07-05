@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrObjectiveDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrObjectivePO">
+        <id column="id" property="id"/>
+        <result column="objective_name" property="objectiveName"/>
+        <result column="owner_user_id" property="ownerUserId"/>
+        <result column="department_id" property="departmentId"/>
+        <result column="cycle_id" property="cycleId"/>
+        <result column="progress" property="progress"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, objective_name, owner_user_id, department_id, cycle_id, progress, status, remark, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrObjectivePO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_objective
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="objectiveName != null">objective_name,</if>
+            <if test="ownerUserId != null">owner_user_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="cycleId != null">cycle_id,</if>
+            <if test="progress != null">progress,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="objectiveName != null">#{objectiveName},</if>
+            <if test="ownerUserId != null">#{ownerUserId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="cycleId != null">#{cycleId},</if>
+            <if test="progress != null">#{progress},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_objective
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrObjectivePO">
+        UPDATE okr_objective
+        <set>
+            <if test="objectiveName != null">objective_name = #{objectiveName},</if>
+            <if test="ownerUserId != null">owner_user_id = #{ownerUserId},</if>
+            <if test="departmentId != null">department_id = #{departmentId},</if>
+            <if test="cycleId != null">cycle_id = #{cycleId},</if>
+            <if test="progress != null">progress = #{progress},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_objective SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

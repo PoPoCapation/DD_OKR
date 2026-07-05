@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrCheckInDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrCheckInPO">
+        <id column="id" property="id"/>
+        <result column="objective_id" property="objectiveId"/>
+        <result column="cycle_id" property="cycleId"/>
+        <result column="check_in_user_id" property="checkInUserId"/>
+        <result column="confidence_level" property="confidenceLevel"/>
+        <result column="summary" property="summary"/>
+        <result column="risk" property="risk"/>
+        <result column="blocker" property="blocker"/>
+        <result column="next_plan" property="nextPlan"/>
+        <result column="apply_status" property="applyStatus"/>
+        <result column="apply_message" property="applyMessage"/>
+        <result column="submitted_at" property="submittedAt"/>
+        <result column="applied_at" property="appliedAt"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, objective_id, cycle_id, check_in_user_id, confidence_level, summary, risk, blocker, next_plan,
+        apply_status, apply_message, submitted_at, applied_at, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrCheckInPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_check_in
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="objectiveId != null">objective_id,</if>
+            <if test="cycleId != null">cycle_id,</if>
+            <if test="checkInUserId != null">check_in_user_id,</if>
+            <if test="confidenceLevel != null">confidence_level,</if>
+            <if test="summary != null">summary,</if>
+            <if test="risk != null">risk,</if>
+            <if test="blocker != null">blocker,</if>
+            <if test="nextPlan != null">next_plan,</if>
+            <if test="applyStatus != null">apply_status,</if>
+            <if test="applyMessage != null">apply_message,</if>
+            <if test="submittedAt != null">submitted_at,</if>
+            <if test="appliedAt != null">applied_at,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="objectiveId != null">#{objectiveId},</if>
+            <if test="cycleId != null">#{cycleId},</if>
+            <if test="checkInUserId != null">#{checkInUserId},</if>
+            <if test="confidenceLevel != null">#{confidenceLevel},</if>
+            <if test="summary != null">#{summary},</if>
+            <if test="risk != null">#{risk},</if>
+            <if test="blocker != null">#{blocker},</if>
+            <if test="nextPlan != null">#{nextPlan},</if>
+            <if test="applyStatus != null">#{applyStatus},</if>
+            <if test="applyMessage != null">#{applyMessage},</if>
+            <if test="submittedAt != null">#{submittedAt},</if>
+            <if test="appliedAt != null">#{appliedAt},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_check_in
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrCheckInPO">
+        UPDATE okr_check_in
+        <set>
+            <if test="objectiveId != null">objective_id = #{objectiveId},</if>
+            <if test="cycleId != null">cycle_id = #{cycleId},</if>
+            <if test="checkInUserId != null">check_in_user_id = #{checkInUserId},</if>
+            <if test="confidenceLevel != null">confidence_level = #{confidenceLevel},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="risk != null">risk = #{risk},</if>
+            <if test="blocker != null">blocker = #{blocker},</if>
+            <if test="nextPlan != null">next_plan = #{nextPlan},</if>
+            <if test="applyStatus != null">apply_status = #{applyStatus},</if>
+            <if test="applyMessage != null">apply_message = #{applyMessage},</if>
+            <if test="submittedAt != null">submitted_at = #{submittedAt},</if>
+            <if test="appliedAt != null">applied_at = #{appliedAt},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_check_in SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.ISysUserRoleDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.SysUserRolePO">
+        <id column="id" property="id"/>
+        <result column="user_id" property="userId"/>
+        <result column="role_id" property="roleId"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, user_id, role_id, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.SysUserRolePO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_user_role
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">user_id,</if>
+            <if test="roleId != null">role_id,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="userId != null">#{userId},</if>
+            <if test="roleId != null">#{roleId},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_user_role
+        WHERE id = #{id}
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysUserRolePO">
+        UPDATE sys_user_role
+        <set>
+            <if test="userId != null">user_id = #{userId},</if>
+            <if test="roleId != null">role_id = #{roleId},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM sys_user_role WHERE id = #{id}
+    </delete>
+
+    <select id="queryRoleCodesByUserId" parameterType="java.lang.Long" resultType="java.lang.String">
+        SELECT r.role_code
+        FROM sys_user_role ur
+        LEFT JOIN sys_role r ON r.id = ur.role_id
+        WHERE ur.user_id = #{userId}
+          AND r.is_deleted = 0
+          AND r.status = 1
+    </select>
+
+</mapper>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.ISysDepartmentDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.SysDepartmentPO">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="dept_name" property="deptName"/>
+        <result column="dept_code" property="deptCode"/>
+        <result column="leader_user_id" property="leaderUserId"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, org_id, parent_id, dept_name, dept_code, leader_user_id, sort_order, status, remark, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.SysDepartmentPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_department
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orgId != null">org_id,</if>
+            <if test="parentId != null">parent_id,</if>
+            <if test="deptName != null">dept_name,</if>
+            <if test="deptCode != null">dept_code,</if>
+            <if test="leaderUserId != null">leader_user_id,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="orgId != null">#{orgId},</if>
+            <if test="parentId != null">#{parentId},</if>
+            <if test="deptName != null">#{deptName},</if>
+            <if test="deptCode != null">#{deptCode},</if>
+            <if test="leaderUserId != null">#{leaderUserId},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_department
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysDepartmentPO">
+        UPDATE sys_department
+        <set>
+            <if test="orgId != null">org_id = #{orgId},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="deptName != null">dept_name = #{deptName},</if>
+            <if test="deptCode != null">dept_code = #{deptCode},</if>
+            <if test="leaderUserId != null">leader_user_id = #{leaderUserId},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE sys_department SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

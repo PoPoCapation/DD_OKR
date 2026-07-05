@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.ISysPermissionDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.SysPermissionPO">
+        <id column="id" property="id"/>
+        <result column="parent_id" property="parentId"/>
+        <result column="perm_code" property="permCode"/>
+        <result column="perm_name" property="permName"/>
+        <result column="perm_type" property="permType"/>
+        <result column="path" property="path"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, parent_id, perm_code, perm_name, perm_type, path, sort_order, status, remark, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.SysPermissionPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_permission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">parent_id,</if>
+            <if test="permCode != null">perm_code,</if>
+            <if test="permName != null">perm_name,</if>
+            <if test="permType != null">perm_type,</if>
+            <if test="path != null">path,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="parentId != null">#{parentId},</if>
+            <if test="permCode != null">#{permCode},</if>
+            <if test="permName != null">#{permName},</if>
+            <if test="permType != null">#{permType},</if>
+            <if test="path != null">#{path},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_permission
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysPermissionPO">
+        UPDATE sys_permission
+        <set>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="permCode != null">perm_code = #{permCode},</if>
+            <if test="permName != null">perm_name = #{permName},</if>
+            <if test="permType != null">perm_type = #{permType},</if>
+            <if test="path != null">path = #{path},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE sys_permission SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

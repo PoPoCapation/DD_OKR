@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrKeyResultDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrKeyResultPO">
+        <id column="id" property="id"/>
+        <result column="kr_name" property="krName"/>
+        <result column="sort_order" property="sortOrder"/>
+        <result column="weight" property="weight"/>
+        <result column="completion_rate" property="completionRate"/>
+        <result column="objective_id" property="objectiveId"/>
+        <result column="deadline" property="deadline"/>
+        <result column="status" property="status"/>
+        <result column="remark" property="remark"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, kr_name, sort_order, weight, completion_rate, objective_id, deadline, status, remark, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrKeyResultPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_key_result
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="krName != null">kr_name,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="weight != null">weight,</if>
+            <if test="completionRate != null">completion_rate,</if>
+            <if test="objectiveId != null">objective_id,</if>
+            <if test="deadline != null">deadline,</if>
+            <if test="status != null">status,</if>
+            <if test="remark != null">remark,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="krName != null">#{krName},</if>
+            <if test="sortOrder != null">#{sortOrder},</if>
+            <if test="weight != null">#{weight},</if>
+            <if test="completionRate != null">#{completionRate},</if>
+            <if test="objectiveId != null">#{objectiveId},</if>
+            <if test="deadline != null">#{deadline},</if>
+            <if test="status != null">#{status},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_key_result
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrKeyResultPO">
+        UPDATE okr_key_result
+        <set>
+            <if test="krName != null">kr_name = #{krName},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="completionRate != null">completion_rate = #{completionRate},</if>
+            <if test="objectiveId != null">objective_id = #{objectiveId},</if>
+            <if test="deadline != null">deadline = #{deadline},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_key_result SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

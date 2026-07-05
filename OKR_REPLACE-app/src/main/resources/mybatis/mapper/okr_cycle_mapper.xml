@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrCycleDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrCyclePO">
+        <id column="id" property="id"/>
+        <result column="org_id" property="orgId"/>
+        <result column="department_id" property="departmentId"/>
+        <result column="cycle_type" property="cycleType"/>
+        <result column="cycle_year" property="cycleYear"/>
+        <result column="cycle_no" property="cycleNo"/>
+        <result column="name" property="name"/>
+        <result column="start_date" property="startDate"/>
+        <result column="end_date" property="endDate"/>
+        <result column="status" property="status"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="updatetime" property="updatetime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, org_id, department_id, cycle_type, cycle_year, cycle_no, name, start_date, end_date, status,
+        created_by, createtime, updated_by, updatetime, is_deleted
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrCyclePO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_cycle
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="orgId != null">org_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="cycleType != null">cycle_type,</if>
+            <if test="cycleYear != null">cycle_year,</if>
+            <if test="cycleNo != null">cycle_no,</if>
+            <if test="name != null">name,</if>
+            <if test="startDate != null">start_date,</if>
+            <if test="endDate != null">end_date,</if>
+            <if test="status != null">status,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="orgId != null">#{orgId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="cycleType != null">#{cycleType},</if>
+            <if test="cycleYear != null">#{cycleYear},</if>
+            <if test="cycleNo != null">#{cycleNo},</if>
+            <if test="name != null">#{name},</if>
+            <if test="startDate != null">#{startDate},</if>
+            <if test="endDate != null">#{endDate},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_cycle
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrCyclePO">
+        UPDATE okr_cycle
+        <set>
+            <if test="orgId != null">org_id = #{orgId},</if>
+            <if test="departmentId != null">department_id = #{departmentId},</if>
+            <if test="cycleType != null">cycle_type = #{cycleType},</if>
+            <if test="cycleYear != null">cycle_year = #{cycleYear},</if>
+            <if test="cycleNo != null">cycle_no = #{cycleNo},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="startDate != null">start_date = #{startDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_cycle SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

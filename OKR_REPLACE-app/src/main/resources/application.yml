@@ -1,0 +1,5 @@
+spring:
+  config:
+    name: OKR_REPLACE-app
+  profiles:
+    active: dev

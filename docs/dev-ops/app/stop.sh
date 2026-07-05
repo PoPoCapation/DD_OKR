@@ -1,0 +1,1 @@
+docker stop OKR_REPLACE

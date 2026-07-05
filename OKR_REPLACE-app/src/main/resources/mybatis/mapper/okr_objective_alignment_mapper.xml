@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrObjectiveAlignmentDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrObjectiveAlignmentPO">
+        <id column="id" property="id"/>
+        <result column="objective_id" property="objectiveId"/>
+        <result column="aligned_objective_id" property="alignedObjectiveId"/>
+        <result column="aligned_kr_id" property="alignedKrId"/>
+        <result column="alignment_type" property="alignmentType"/>
+        <result column="status" property="status"/>
+        <result column="created_by" property="createdBy"/>
+        <result column="updated_by" property="updatedBy"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+        <result column="is_deleted" property="isDeleted"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, objective_id, aligned_objective_id, aligned_kr_id, alignment_type, status,
+        created_by, updated_by, createtime, updatetime, is_deleted
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrObjectiveAlignmentPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_objective_alignment
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="objectiveId != null">objective_id,</if>
+            <if test="alignedObjectiveId != null">aligned_objective_id,</if>
+            <if test="alignedKrId != null">aligned_kr_id,</if>
+            <if test="alignmentType != null">alignment_type,</if>
+            <if test="status != null">status,</if>
+            <if test="createdBy != null">created_by,</if>
+            <if test="updatedBy != null">updated_by,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="objectiveId != null">#{objectiveId},</if>
+            <if test="alignedObjectiveId != null">#{alignedObjectiveId},</if>
+            <if test="alignedKrId != null">#{alignedKrId},</if>
+            <if test="alignmentType != null">#{alignmentType},</if>
+            <if test="status != null">#{status},</if>
+            <if test="createdBy != null">#{createdBy},</if>
+            <if test="updatedBy != null">#{updatedBy},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_objective_alignment
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrObjectiveAlignmentPO">
+        UPDATE okr_objective_alignment
+        <set>
+            <if test="objectiveId != null">objective_id = #{objectiveId},</if>
+            <if test="alignedObjectiveId != null">aligned_objective_id = #{alignedObjectiveId},</if>
+            <if test="alignedKrId != null">aligned_kr_id = #{alignedKrId},</if>
+            <if test="alignmentType != null">alignment_type = #{alignmentType},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="createdBy != null">created_by = #{createdBy},</if>
+            <if test="updatedBy != null">updated_by = #{updatedBy},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_objective_alignment SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrOperationLogDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrOperationLogPO">
+        <id column="id" property="id"/>
+        <result column="service_name" property="serviceName"/>
+        <result column="resource_type" property="resourceType"/>
+        <result column="resource_id" property="resourceId"/>
+        <result column="action" property="action"/>
+        <result column="operator_id" property="operatorId"/>
+        <result column="before_json" property="beforeJson"/>
+        <result column="after_json" property="afterJson"/>
+        <result column="request_id" property="requestId"/>
+        <result column="ip" property="ip"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, service_name, resource_type, resource_id, action, operator_id, before_json, after_json,
+        request_id, ip, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrOperationLogPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_operation_log
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="serviceName != null">service_name,</if>
+            <if test="resourceType != null">resource_type,</if>
+            <if test="resourceId != null">resource_id,</if>
+            <if test="action != null">action,</if>
+            <if test="operatorId != null">operator_id,</if>
+            <if test="beforeJson != null">before_json,</if>
+            <if test="afterJson != null">after_json,</if>
+            <if test="requestId != null">request_id,</if>
+            <if test="ip != null">ip,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="serviceName != null">#{serviceName},</if>
+            <if test="resourceType != null">#{resourceType},</if>
+            <if test="resourceId != null">#{resourceId},</if>
+            <if test="action != null">#{action},</if>
+            <if test="operatorId != null">#{operatorId},</if>
+            <if test="beforeJson != null">#{beforeJson},</if>
+            <if test="afterJson != null">#{afterJson},</if>
+            <if test="requestId != null">#{requestId},</if>
+            <if test="ip != null">#{ip},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_operation_log
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrOperationLogPO">
+        UPDATE okr_operation_log
+        <set>
+            <if test="serviceName != null">service_name = #{serviceName},</if>
+            <if test="resourceType != null">resource_type = #{resourceType},</if>
+            <if test="resourceId != null">resource_id = #{resourceId},</if>
+            <if test="action != null">action = #{action},</if>
+            <if test="operatorId != null">operator_id = #{operatorId},</if>
+            <if test="beforeJson != null">before_json = #{beforeJson},</if>
+            <if test="afterJson != null">after_json = #{afterJson},</if>
+            <if test="requestId != null">request_id = #{requestId},</if>
+            <if test="ip != null">ip = #{ip},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_operation_log SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrCheckInItemDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrCheckInItemPO">
+        <id column="id" property="id"/>
+        <result column="check_in_id" property="checkInId"/>
+        <result column="kr_id" property="krId"/>
+        <result column="old_completion_rate" property="oldCompletionRate"/>
+        <result column="new_completion_rate" property="newCompletionRate"/>
+        <result column="progress_delta" property="progressDelta"/>
+        <result column="remark" property="remark"/>
+        <result column="apply_status" property="applyStatus"/>
+        <result column="apply_message" property="applyMessage"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, check_in_id, kr_id, old_completion_rate, new_completion_rate, progress_delta, remark,
+        apply_status, apply_message, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrCheckInItemPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_check_in_item
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="checkInId != null">check_in_id,</if>
+            <if test="krId != null">kr_id,</if>
+            <if test="oldCompletionRate != null">old_completion_rate,</if>
+            <if test="newCompletionRate != null">new_completion_rate,</if>
+            <if test="progressDelta != null">progress_delta,</if>
+            <if test="remark != null">remark,</if>
+            <if test="applyStatus != null">apply_status,</if>
+            <if test="applyMessage != null">apply_message,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="checkInId != null">#{checkInId},</if>
+            <if test="krId != null">#{krId},</if>
+            <if test="oldCompletionRate != null">#{oldCompletionRate},</if>
+            <if test="newCompletionRate != null">#{newCompletionRate},</if>
+            <if test="progressDelta != null">#{progressDelta},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="applyStatus != null">#{applyStatus},</if>
+            <if test="applyMessage != null">#{applyMessage},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_check_in_item
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrCheckInItemPO">
+        UPDATE okr_check_in_item
+        <set>
+            <if test="checkInId != null">check_in_id = #{checkInId},</if>
+            <if test="krId != null">kr_id = #{krId},</if>
+            <if test="oldCompletionRate != null">old_completion_rate = #{oldCompletionRate},</if>
+            <if test="newCompletionRate != null">new_completion_rate = #{newCompletionRate},</if>
+            <if test="progressDelta != null">progress_delta = #{progressDelta},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="applyStatus != null">apply_status = #{applyStatus},</if>
+            <if test="applyMessage != null">apply_message = #{applyMessage},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_check_in_item SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

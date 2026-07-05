@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.IOkrTaskDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.OkrTaskPO">
+        <id column="id" property="id"/>
+        <result column="task_name" property="taskName"/>
+        <result column="status" property="status"/>
+        <result column="owner_user_id" property="ownerUserId"/>
+        <result column="kr_id" property="krId"/>
+        <result column="department_id" property="departmentId"/>
+        <result column="priority" property="priority"/>
+        <result column="deadline" property="deadline"/>
+        <result column="remark" property="remark"/>
+        <result column="is_deleted" property="isDeleted"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, task_name, status, owner_user_id, kr_id, department_id, priority, deadline, remark, is_deleted, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.OkrTaskPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO okr_task
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="taskName != null">task_name,</if>
+            <if test="status != null">status,</if>
+            <if test="ownerUserId != null">owner_user_id,</if>
+            <if test="krId != null">kr_id,</if>
+            <if test="departmentId != null">department_id,</if>
+            <if test="priority != null">priority,</if>
+            <if test="deadline != null">deadline,</if>
+            <if test="remark != null">remark,</if>
+            <if test="isDeleted != null">is_deleted,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="taskName != null">#{taskName},</if>
+            <if test="status != null">#{status},</if>
+            <if test="ownerUserId != null">#{ownerUserId},</if>
+            <if test="krId != null">#{krId},</if>
+            <if test="departmentId != null">#{departmentId},</if>
+            <if test="priority != null">#{priority},</if>
+            <if test="deadline != null">#{deadline},</if>
+            <if test="remark != null">#{remark},</if>
+            <if test="isDeleted != null">#{isDeleted},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_task
+        WHERE id = #{id} AND is_deleted = 0
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrTaskPO">
+        UPDATE okr_task
+        <set>
+            <if test="taskName != null">task_name = #{taskName},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="ownerUserId != null">owner_user_id = #{ownerUserId},</if>
+            <if test="krId != null">kr_id = #{krId},</if>
+            <if test="departmentId != null">department_id = #{departmentId},</if>
+            <if test="priority != null">priority = #{priority},</if>
+            <if test="deadline != null">deadline = #{deadline},</if>
+            <if test="remark != null">remark = #{remark},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="delete" parameterType="java.lang.Long">
+        UPDATE okr_task SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+</mapper>

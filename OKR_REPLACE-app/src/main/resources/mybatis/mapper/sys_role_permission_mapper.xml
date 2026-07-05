@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.bugstack.infrastructure.dao.ISysRolePermissionDao">
+
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.SysRolePermissionPO">
+        <id column="id" property="id"/>
+        <result column="role_id" property="roleId"/>
+        <result column="permission_id" property="permissionId"/>
+        <result column="createtime" property="createtime"/>
+        <result column="updatetime" property="updatetime"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, role_id, permission_id, createtime, updatetime
+    </sql>
+
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.SysRolePermissionPO" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO sys_role_permission
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="roleId != null">role_id,</if>
+            <if test="permissionId != null">permission_id,</if>
+        </trim>
+        <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
+            <if test="roleId != null">#{roleId},</if>
+            <if test="permissionId != null">#{permissionId},</if>
+        </trim>
+    </insert>
+
+    <select id="queryById" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_role_permission
+        WHERE id = #{id}
+    </select>
+
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysRolePermissionPO">
+        UPDATE sys_role_permission
+        <set>
+            <if test="roleId != null">role_id = #{roleId},</if>
+            <if test="permissionId != null">permission_id = #{permissionId},</if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="delete" parameterType="java.lang.Long">
+        DELETE FROM sys_role_permission WHERE id = #{id}
+    </delete>
+
+</mapper>
