@@ -34,4 +34,6 @@ public class SysUserPO {
     private Date createtime;
     /** 更新时间 */
     private Date updatetime;
+
+
 }

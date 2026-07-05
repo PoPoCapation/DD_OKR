@@ -11,7 +11,9 @@ import java.util.Date;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SystemUserVO {
-
+    /** 用户ID */
+    private Long id;
+    /** 展示名称 */
     private String username;
     /** 登录账号，唯一 */
     private String account;

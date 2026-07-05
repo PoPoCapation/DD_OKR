@@ -474,3 +474,25 @@ CREATE TABLE okr_operation_log (
     KEY idx_action (action),
     KEY idx_createtime (createtime)
 );
+
+-- =============================================================
+-- 超级用户种子数据（对齐 OKR 原 admin/admin123 种子）
+-- 登录账号：admin
+-- 登录密码：admin123（password 字段为 BCrypt 哈希）
+-- 绑定 admin 角色，data_scope=all，isAdmin() 放行全部权限校验
+-- 使用 INSERT IGNORE，保证脚本可重复执行
+-- =============================================================
+
+-- 超级管理员角色（data_scope=all 表示全部数据范围）
+INSERT IGNORE INTO sys_role(org_id, role_code, role_name, data_scope, sort_order, status, remark, is_deleted)
+VALUES (1, 'admin', '超级管理员', 'all', 1, 1, '系统内置超级管理员角色，拥有全部数据与权限', 0);
+
+-- 超级用户账号
+INSERT IGNORE INTO sys_user(username, account, password, department_id, status, is_deleted)
+VALUES ('超级管理员', 'admin', '$2a$10$GM4zbG6Ozyc9xyuEY5VO/ufpyvN6FCF4npgJCSgdjGHRHsZeVprxK', NULL, 1, 0);
+
+-- 超级用户与超级管理员角色关联
+INSERT IGNORE INTO sys_user_role(user_id, role_id)
+SELECT u.id, r.id
+FROM sys_user u, sys_role r
+WHERE u.account = 'admin' AND r.role_code = 'admin' AND r.org_id = 1;
