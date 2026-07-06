@@ -112,31 +112,6 @@
 
 ---
 
-## 启动
-
-### 后端(8091)
-
-1. 配 `OKR_REPLACE-app/src/main/resources/application-dev.yml` 的数据库 + jwt
-2. 建表:执行 `docs/rbac-tables.sql`(RBAC 6 张表)
-3. 种子数据:
-   - `docs/rbac-seed.sql`(4 角色 + 继承链 + 示例权限 + 给 cb 分组长)
-   - `docs/okr-seed.sql`(部门 + cb 设部门 + 示例目标)
-   - `docs/okr-hierarchy-seed.sql`(leader_user_id 汇报关系,需先注册 xiaoli/laowang)
-4. IDEA 启动 `cn.bugstack.Application`
-
-### 前端(5173)
-
-```bash
-cd front
-npm run dev
-```
-
-浏览器开 `http://localhost:5173`,注册账号 → 登录 → 目标管理。
-
-> 前端通过 vite proxy 把 `/api` 转发到后端 `localhost:8091`。
-
----
-
 ## 文档
 
 - `docs/RBAC服务接口说明.md` — 5 个 service 接口详解 + 使用示例
