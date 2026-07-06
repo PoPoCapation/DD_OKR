@@ -48,6 +48,15 @@ public enum ResponseCode {
     LOGIN_FAIL("0029" ,"登录失败"),
     UNAUTHORIZED("0030" ,"未登录或token无效"),
 
+    ACCOUNT_EXISTS("0031" ,"账号已存在"),
+    REGISTER_FAIL("0032" ,"注册失败"),
+
+    OKR_OBJECTIVE_CREATE_FAIL("0033" ,"创建目标失败"),
+    OKR_OBJECTIVE_UPDATE_FAIL("0034" ,"更新目标失败"),
+    OKR_OBJECTIVE_DELETE_FAIL("0035" ,"删除目标失败"),
+    OKR_OBJECTIVE_FIND_FAIL("0036" ,"查询目标失败"),
+    OKR_OBJECTIVE_NO_PERMISSION("0037" ,"无权操作该目标"),
+
     ;
 
     private String code;

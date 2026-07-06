@@ -29,6 +29,7 @@ import java.io.IOException;
  */
 @Configuration
 @EnableConfigurationProperties(RedisClientConfigProperties.class)
+@org.springframework.boot.autoconfigure.condition.ConditionalOnProperty(prefix = "redis.sdk.config", name = "enabled", havingValue = "true")
 public class RedisClientConfig {
 
     @Bean("redissonClient")

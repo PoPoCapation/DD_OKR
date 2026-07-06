@@ -69,4 +69,12 @@
         UPDATE sys_role SET is_deleted = 1 WHERE id = #{id}
     </update>
 
+    <select id="queryDataScopesByUserId" parameterType="java.lang.Long" resultType="java.lang.String">
+        SELECT r.data_scope
+        FROM sys_role r
+        WHERE r.id IN (SELECT ur.role_id FROM sys_user_role ur WHERE ur.user_id = #{userId})
+          AND r.is_deleted = 0
+          AND r.status = 1
+    </select>
+
 </mapper>

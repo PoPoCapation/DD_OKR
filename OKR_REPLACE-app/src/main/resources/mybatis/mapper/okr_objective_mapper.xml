@@ -69,4 +69,42 @@
         UPDATE okr_objective SET is_deleted = 1 WHERE id = #{id}
     </update>
 
+    <select id="queryList" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_objective
+        WHERE is_deleted = 0
+        <choose>
+            <when test="dataScope == 'self'">
+                AND owner_user_id = #{userId}
+            </when>
+            <when test="dataScope == 'dept'">
+                AND department_id = #{deptId}
+            </when>
+            <when test="dataScope == 'dept_and_below'">
+                AND department_id IN
+                <foreach collection="deptIds" item="deptIdItem" open="(" separator="," close=")">
+                    #{deptIdItem}
+                </foreach>
+            </when>
+            <when test="dataScope == 'all'">
+                <!-- all: 不加额外条件 -->
+            </when>
+            <otherwise>
+                AND owner_user_id = #{userId}
+            </otherwise>
+        </choose>
+        ORDER BY createtime DESC
+    </select>
+
+    <select id="queryListByUserIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_objective
+        WHERE is_deleted = 0
+          AND owner_user_id IN
+        <foreach collection="userIds" item="uid" open="(" separator="," close=")">
+            #{uid}
+        </foreach>
+        ORDER BY createtime DESC
+    </select>
+
 </mapper>

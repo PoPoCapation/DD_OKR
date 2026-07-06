@@ -3,6 +3,8 @@ package cn.bugstack.infrastructure.adapter.repository;
 import cn.bugstack.domain.user.adapter.repository.IUserRepository;
 import cn.bugstack.domain.user.model.entity.SystemUserVO;
 import cn.bugstack.infrastructure.dao.ISysUserDao;
+import cn.bugstack.infrastructure.dao.ISysDepartmentDao;
+import cn.bugstack.infrastructure.dao.ISysRoleDao;
 import cn.bugstack.infrastructure.dao.ISysUserRoleDao;
 import cn.bugstack.infrastructure.dao.po.SysUserPO;
 import cn.bugstack.infrastructure.dao.po.SysUserRolePO;
@@ -21,6 +23,10 @@ public class UserRepository implements IUserRepository {
     private ISysUserDao sysUserDao;
     @Resource
     private ISysUserRoleDao sysUserRoleDao;
+    @Resource
+    private ISysRoleDao sysRoleDao;
+    @Resource
+    private ISysDepartmentDao sysDepartmentDao;
 
     @Override
     public boolean createUser(SystemUserVO systemUserVO) {
@@ -174,5 +180,34 @@ public class UserRepository implements IUserRepository {
     /** DAO 返回 null 时兜底为空集合，避免 NPE */
     private <T> List<T> safeList(List<T> list) {
         return list == null ? Collections.emptyList() : list;
+    }
+
+    @Override
+    public String queryUserDataScope(Long userId) {
+        List<String> scopes = sysRoleDao.queryDataScopesByUserId(userId);
+        if (scopes == null || scopes.isEmpty()) {
+            return "self";
+        }
+        // 取最宽：all > dept_and_below > dept > self
+        if (scopes.contains("all")) return "all";
+        if (scopes.contains("dept_and_below")) return "dept_and_below";
+        if (scopes.contains("dept")) return "dept";
+        return "self";
+    }
+
+    @Override
+    public List<Long> queryDescendantDeptIds(Long deptId) {
+        if (deptId == null) {
+            return Collections.emptyList();
+        }
+        return sysDepartmentDao.queryDescendantDeptIds(deptId);
+    }
+
+    @Override
+    public List<Long> queryVisibleUserIds(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        return sysUserDao.queryVisibleUserIds(userId);
     }
 }

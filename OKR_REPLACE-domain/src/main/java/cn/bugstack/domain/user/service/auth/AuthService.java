@@ -6,6 +6,7 @@ import cn.bugstack.domain.user.model.entity.SystemUserVO;
 import cn.bugstack.domain.user.model.valobj.LoginResultVO;
 import cn.bugstack.domain.user.service.IAuthService;
 import cn.bugstack.domain.user.service.IUserRoleService;
+import cn.bugstack.domain.user.service.IUserService;
 import cn.bugstack.types.common.PasswordEncoder;
 import cn.bugstack.types.enums.ResponseCode;
 import cn.bugstack.types.exception.AppException;
@@ -13,6 +14,7 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 
 @Slf4j
@@ -23,6 +25,8 @@ public class AuthService implements IAuthService {
     private IUserRepository userRepository;
     @Resource
     private IUserRoleService userRoleService;
+    @Resource
+    private IUserService userService;
     @Resource
     private JWT jwt;
 
@@ -51,6 +55,40 @@ public class AuthService implements IAuthService {
         return LoginResultVO.builder()
                 .userId(user.getId())
                 .account(user.getAccount())
+                .token(token)
+                .roles(roles)
+                .permissions(permissions)
+                .build();
+    }
+
+    @Override
+    public LoginResultVO register(String account, String password, String username) {
+        log.info("开始注册: account = {}", account);
+        // 1. 账号是否已存在
+        if (userRepository.queryUserByAccount(account) != null) {
+            throw new AppException(ResponseCode.ACCOUNT_EXISTS.getCode(), ResponseCode.ACCOUNT_EXISTS.getInfo());
+        }
+        // 2. 构造用户并创建（UserService.createUser 内部 BCrypt 加密密码）
+        SystemUserVO newUser = SystemUserVO.builder()
+                .username(username != null && !username.isEmpty() ? username : account)
+                .account(account)
+                .password(password)
+                .status(1)
+                .isDeleted(0)
+                .createtime(new Date())
+                .updatetime(new Date())
+                .build();
+        userService.createUser(newUser);
+        // 3. 查回用户拿 userId（createUser 不回填 id 到 VO）
+        SystemUserVO created = userRepository.queryUserByAccount(account);
+        // 4. 新用户默认无角色无权限，直接签 token（注册即登录）
+        List<String> roles = userRoleService.queryRoleCodesByUserId(created.getId());
+        List<String> permissions = userRoleService.queryPermissionCodesByUserId(created.getId());
+        String token = jwt.createToken(created.getId(), created.getAccount(), roles, permissions);
+        log.info("注册成功: account = {}, userId = {}", account, created.getId());
+        return LoginResultVO.builder()
+                .userId(created.getId())
+                .account(created.getAccount())
                 .token(token)
                 .roles(roles)
                 .permissions(permissions)

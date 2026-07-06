@@ -10,6 +10,8 @@ import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Slf4j
 @Service
 public class UserService implements IUserService {
@@ -63,5 +65,23 @@ public class UserService implements IUserService {
             throw new AppException(ResponseCode.USER_FIND_FAIL.getCode(), ResponseCode.USER_FIND_FAIL.getInfo());
         }
         return userVO;
+    }
+
+    @Override
+    public String queryUserDataScope(Long userId) {
+        log.info("开始查询用户数据范围: UserId = {}", userId);
+        return repository.queryUserDataScope(userId);
+    }
+
+    @Override
+    public List<Long> queryDescendantDeptIds(Long deptId) {
+        log.info("开始查询部门及下级: deptId = {}", deptId);
+        return repository.queryDescendantDeptIds(deptId);
+    }
+
+    @Override
+    public List<Long> queryVisibleUserIds(Long userId) {
+        log.info("开始查询可见用户(汇报关系): userId = {}", userId);
+        return repository.queryVisibleUserIds(userId);
     }
 }

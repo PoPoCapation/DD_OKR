@@ -77,11 +77,21 @@
     </insert>
 
     <select id="queryPermissionCodesByUserId" parameterType="java.lang.Long" resultType="java.lang.String">
+        WITH RECURSIVE role_tree AS (
+            SELECT r.id, r.parent_id
+            FROM sys_role r
+            WHERE r.id IN (SELECT ur.role_id FROM sys_user_role ur WHERE ur.user_id = #{userId})
+              AND r.is_deleted = 0
+            UNION ALL
+            SELECT r2.id, r2.parent_id
+            FROM sys_role r2
+            JOIN role_tree t ON r2.id = t.parent_id
+            WHERE r2.is_deleted = 0
+        )
         SELECT DISTINCT p.perm_code
-        FROM sys_user_role ur
-        LEFT JOIN sys_role_permission rp ON rp.role_id = ur.role_id
+        FROM sys_role_permission rp
         LEFT JOIN sys_permission p ON p.id = rp.permission_id
-        WHERE ur.user_id = #{userId}
+        WHERE rp.role_id IN (SELECT id FROM role_tree)
           AND p.is_deleted = 0
           AND p.status = 1
     </select>

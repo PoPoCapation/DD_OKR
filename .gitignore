@@ -39,3 +39,4 @@ build/
 ### Mac OS ###
 .DS_Store
 /OKR_REPLACE-app/src/main/resources/application-dev.yml
+/front/

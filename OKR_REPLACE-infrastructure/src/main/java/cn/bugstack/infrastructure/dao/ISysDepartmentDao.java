@@ -3,6 +3,8 @@ package cn.bugstack.infrastructure.dao;
 import cn.bugstack.infrastructure.dao.po.SysDepartmentPO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 /**
  * 部门表 DAO
  */
@@ -20,4 +22,7 @@ public interface ISysDepartmentDao {
 
     /** 根据ID逻辑删除部门 */
     int delete(Long id);
+
+    /** 查询本部门及所有下级部门ID（CTE 递归，含自身） */
+    List<Long> queryDescendantDeptIds(Long deptId);
 }
