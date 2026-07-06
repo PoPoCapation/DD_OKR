@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="cn.bugstack.infrastructure.dao.ISysRoleDao">
 
-    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.SysRoleEntity">
+    <resultMap id="BaseResultMap" type="cn.bugstack.infrastructure.dao.po.SysRolePO">
         <id column="id" property="id"/>
         <result column="org_id" property="orgId"/>
         <result column="role_code" property="roleCode"/>
@@ -20,7 +20,7 @@
         id, org_id, role_code, role_name, data_scope, sort_order, status, remark, is_deleted, createtime, updatetime
     </sql>
 
-    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.SysRoleEntity" useGeneratedKeys="true" keyProperty="id">
+    <insert id="insert" parameterType="cn.bugstack.infrastructure.dao.po.SysRolePO" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO sys_role
         <trim prefix="(" suffix=")" suffixOverrides=",">
             <if test="orgId != null">org_id,</if>
@@ -50,7 +50,7 @@
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
-    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysRoleEntity">
+    <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysRolePO">
         UPDATE sys_role
         <set>
             <if test="orgId != null">org_id = #{orgId},</if>

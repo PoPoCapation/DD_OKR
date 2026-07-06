@@ -45,4 +45,26 @@
         DELETE FROM sys_role_permission WHERE id = #{id}
     </delete>
 
+    <select id="queryPermissionIdsByRoleId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT permission_id
+        FROM sys_role_permission
+        WHERE role_id = #{roleId}
+    </select>
+
+    <delete id="deleteByRoleIdAndPermissionIds">
+        DELETE FROM sys_role_permission
+        WHERE role_id = #{roleId}
+          AND permission_id IN
+        <foreach collection="permissionIds" item="permissionId" open="(" separator="," close=")">
+            #{permissionId}
+        </foreach>
+    </delete>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO sys_role_permission (role_id, permission_id) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.roleId}, #{item.permissionId})
+        </foreach>
+    </insert>
+
 </mapper>

@@ -1,6 +1,6 @@
 package cn.bugstack.infrastructure.dao;
 
-import cn.bugstack.infrastructure.dao.po.SysRoleEntity;
+import cn.bugstack.infrastructure.dao.po.SysRolePO;
 import org.apache.ibatis.annotations.Mapper;
 
 /**
@@ -10,13 +10,13 @@ import org.apache.ibatis.annotations.Mapper;
 public interface ISysRoleDao {
 
     /** 新增角色 */
-    int insert(SysRoleEntity po);
+    int insert(SysRolePO po);
 
     /** 根据ID查询角色（不含已删除） */
-    SysRoleEntity queryById(Long id);
+    SysRolePO queryById(Long id);
 
     /** 根据ID更新角色 */
-    int update(SysRoleEntity po);
+    int update(SysRolePO po);
 
     /** 根据ID逻辑删除角色 */
     int delete(Long id);

@@ -18,7 +18,8 @@ import java.util.List;
  * 1. 账号密码校验通过后，调用 {@link #createToken} 签发 token 返回给前端；
  * 2. 后续请求携带 token，由拦截器/网关调用 {@link #parseToken} 或 {@link #verify} 解析校验身份。
  * <p>
- * token 内携带角色列表（roles），角色来源为 sys_user_role 关联表（一个用户可拥有多个角色）。
+ * token 内携带角色列表（roles）与权限列表（permissions）：
+ * 角色来源为 sys_user_role，权限来源为 user_role + role_permission + permission 联查。
  * <p>
  * 可选配置（application.yml）：
  * <pre>
@@ -43,17 +44,19 @@ public class JWT {
     /**
      * 登录成功后签发 token
      *
-     * @param userId  用户ID
-     * @param account 登录账号
-     * @param roles   用户角色编码列表（来自 sys_user_role）
+     * @param userId       用户ID
+     * @param account      登录账号
+     * @param roles        用户角色编码列表（来自 sys_user_role）
+     * @param permissions  用户权限编码列表（来自 user_role + role_permission + permission 联查）
      * @return JWT token
      */
-    public String createToken(Long userId, String account, List<String> roles) {
+    public String createToken(Long userId, String account, List<String> roles, List<String> permissions) {
         Date now = new Date();
         return Jwts.builder()
                 .setSubject(String.valueOf(userId))
                 .claim("account", account)
                 .claim("roles", roles)
+                .claim("permissions", permissions)
                 .setIssuedAt(now)
                 .setExpiration(new Date(now.getTime() + expireMinutes * 60_000L))
                 .signWith(SignatureAlgorithm.HS256, secret)
@@ -98,6 +101,21 @@ public class JWT {
         if (roles instanceof List) {
             List<String> result = new ArrayList<>();
             for (Object o : (List<?>) roles) {
+                result.add(String.valueOf(o));
+            }
+            return result;
+        }
+        return Collections.emptyList();
+    }
+
+    /**
+     * 从 token 中取出权限编码列表
+     */
+    public List<String> getPermissions(String token) {
+        Object permissions = parseToken(token).get("permissions");
+        if (permissions instanceof List) {
+            List<String> result = new ArrayList<>();
+            for (Object o : (List<?>) permissions) {
                 result.add(String.valueOf(o));
             }
             return result;

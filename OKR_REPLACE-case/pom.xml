@@ -10,11 +10,6 @@
     <artifactId>OKR_REPLACE-case</artifactId>
 
     <dependencies>
-
-        <dependency>
-            <groupId>cn.bugstack</groupId>
-            <artifactId>OKR_REPLACE-case</artifactId>
-        </dependency>
     </dependencies>
 
     <build>

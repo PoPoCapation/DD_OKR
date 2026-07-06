@@ -54,4 +54,36 @@
           AND r.status = 1
     </select>
 
+    <select id="queryRoleIdsByUserId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT role_id
+        FROM sys_user_role
+        WHERE user_id = #{userId}
+    </select>
+
+    <delete id="deleteByUserIdAndRoleIds">
+        DELETE FROM sys_user_role
+        WHERE user_id = #{userId}
+          AND role_id IN
+        <foreach collection="roleIds" item="roleId" open="(" separator="," close=")">
+            #{roleId}
+        </foreach>
+    </delete>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO sys_user_role (user_id, role_id) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.roleId})
+        </foreach>
+    </insert>
+
+    <select id="queryPermissionCodesByUserId" parameterType="java.lang.Long" resultType="java.lang.String">
+        SELECT DISTINCT p.perm_code
+        FROM sys_user_role ur
+        LEFT JOIN sys_role_permission rp ON rp.role_id = ur.role_id
+        LEFT JOIN sys_permission p ON p.id = rp.permission_id
+        WHERE ur.user_id = #{userId}
+          AND p.is_deleted = 0
+          AND p.status = 1
+    </select>
+
 </mapper>

@@ -15,6 +15,9 @@ public interface ISysUserDao {
     /** 根据ID查询用户（不含已删除） */
     SysUserPO queryById(Long id);
 
+    /** 根据登录账号查询用户（不含已删除） */
+    SysUserPO queryByAccount(String account);
+
     /** 根据ID更新用户 */
     int update(SysUserPO po);
 

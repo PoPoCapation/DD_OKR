@@ -15,7 +15,6 @@
         <module>OKR_REPLACE-infrastructure</module>
         <module>OKR_REPLACE-types</module>
         <module>OKR_REPLACE-case</module>
-        <module>OKR_REPLACE-case</module>
     </modules>
 
     <repositories>

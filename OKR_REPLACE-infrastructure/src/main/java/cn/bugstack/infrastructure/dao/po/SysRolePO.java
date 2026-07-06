@@ -14,7 +14,7 @@ import java.util.Date;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SysRoleEntity {
+public class SysRolePO {
 
     /** 角色ID */
     private Long id;

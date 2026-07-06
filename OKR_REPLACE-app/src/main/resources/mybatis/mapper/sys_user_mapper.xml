@@ -44,6 +44,12 @@
         WHERE id = #{id} AND is_deleted = 0
     </select>
 
+    <select id="queryByAccount" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM sys_user
+        WHERE account = #{account} AND is_deleted = 0
+    </select>
+
     <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.SysUserPO">
         UPDATE sys_user
         <set>
