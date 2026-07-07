@@ -3,21 +3,21 @@ package cn.bugstack.infrastructure.dao;
 import cn.bugstack.infrastructure.dao.po.OkrObjectiveAlignmentPO;
 import org.apache.ibatis.annotations.Mapper;
 
-/**
- * OKR目标对齐关系表 DAO
- */
+import java.util.List;
+
 @Mapper
 public interface IOkrObjectiveAlignmentDao {
-
-    /** 新增对齐关系 */
     int insert(OkrObjectiveAlignmentPO po);
-
-    /** 根据ID查询对齐关系（不含已删除） */
     OkrObjectiveAlignmentPO queryById(Long id);
-
-    /** 根据ID更新对齐关系 */
     int update(OkrObjectiveAlignmentPO po);
-
-    /** 根据ID逻辑删除对齐关系 */
     int delete(Long id);
+
+    /** 出向对齐：我对齐到哪些上级O */
+    List<OkrObjectiveAlignmentPO> queryByObjectiveId(Long objectiveId);
+
+    /** 入向对齐：哪些下级O对齐到我 */
+    List<OkrObjectiveAlignmentPO> queryByAlignedObjectiveId(Long alignedObjectiveId);
+
+    /** 删除某O的所有出向对齐 */
+    int deleteByObjectiveId(Long objectiveId);
 }

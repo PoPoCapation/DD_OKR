@@ -41,6 +41,18 @@ public class OkrTaskRepository implements IOkrTaskRepository {
         return list.stream().map(this::toVO).collect(Collectors.toList());
     }
 
+    @Override
+    public List<OkrTaskVO> queryTasksByTaskIds(List<Long> taskIds) {
+        if (taskIds == null || taskIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<OkrTaskPO> list = dao.queryByIds(taskIds);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(this::toVO).collect(Collectors.toList());
+    }
+
     private OkrTaskPO toPO(OkrTaskVO vo) {
         return OkrTaskPO.builder()
                 .id(vo.getId())

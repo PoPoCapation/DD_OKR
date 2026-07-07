@@ -90,4 +90,11 @@
         UPDATE okr_check_in SET is_deleted = 1 WHERE id = #{id}
     </update>
 
+    <select id="queryByObjectiveId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_check_in
+        WHERE objective_id = #{objectiveId} AND is_deleted = 0
+        ORDER BY submitted_at DESC
+    </select>
+
 </mapper>

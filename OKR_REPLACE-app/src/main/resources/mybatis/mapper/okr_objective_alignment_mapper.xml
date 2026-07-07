@@ -30,7 +30,6 @@
             <if test="alignmentType != null">alignment_type,</if>
             <if test="status != null">status,</if>
             <if test="createdBy != null">created_by,</if>
-            <if test="updatedBy != null">updated_by,</if>
             <if test="isDeleted != null">is_deleted,</if>
         </trim>
         <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
@@ -40,7 +39,6 @@
             <if test="alignmentType != null">#{alignmentType},</if>
             <if test="status != null">#{status},</if>
             <if test="createdBy != null">#{createdBy},</if>
-            <if test="updatedBy != null">#{updatedBy},</if>
             <if test="isDeleted != null">#{isDeleted},</if>
         </trim>
     </insert>
@@ -54,12 +52,7 @@
     <update id="update" parameterType="cn.bugstack.infrastructure.dao.po.OkrObjectiveAlignmentPO">
         UPDATE okr_objective_alignment
         <set>
-            <if test="objectiveId != null">objective_id = #{objectiveId},</if>
-            <if test="alignedObjectiveId != null">aligned_objective_id = #{alignedObjectiveId},</if>
-            <if test="alignedKrId != null">aligned_kr_id = #{alignedKrId},</if>
-            <if test="alignmentType != null">alignment_type = #{alignmentType},</if>
             <if test="status != null">status = #{status},</if>
-            <if test="createdBy != null">created_by = #{createdBy},</if>
             <if test="updatedBy != null">updated_by = #{updatedBy},</if>
             <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
         </set>
@@ -68,6 +61,22 @@
 
     <update id="delete" parameterType="java.lang.Long">
         UPDATE okr_objective_alignment SET is_deleted = 1 WHERE id = #{id}
+    </update>
+
+    <select id="queryByObjectiveId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_objective_alignment
+        WHERE objective_id = #{objectiveId} AND is_deleted = 0
+    </select>
+
+    <select id="queryByAlignedObjectiveId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_objective_alignment
+        WHERE aligned_objective_id = #{alignedObjectiveId} AND is_deleted = 0
+    </select>
+
+    <update id="deleteByObjectiveId" parameterType="java.lang.Long">
+        UPDATE okr_objective_alignment SET is_deleted = 1 WHERE objective_id = #{objectiveId}
     </update>
 
 </mapper>

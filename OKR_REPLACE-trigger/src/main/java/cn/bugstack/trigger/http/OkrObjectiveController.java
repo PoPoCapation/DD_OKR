@@ -56,7 +56,7 @@ public class OkrObjectiveController {
     }
 
     @PostMapping("/delete")
-    public Response<Void> delete(HttpServletRequest request, @RequestParam Long objectiveId) {
+    public Response<Void> delete(HttpServletRequest request, @RequestParam("objectiveId") Long objectiveId) {
         Long userId = (Long) request.getAttribute("userId");
         if (userId == null) {
             return Response.<Void>builder().code(ResponseCode.UNAUTHORIZED.getCode()).info(ResponseCode.UNAUTHORIZED.getInfo()).build();

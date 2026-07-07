@@ -30,7 +30,6 @@
             <if test="operatorId != null">operator_id,</if>
             <if test="remark != null">remark,</if>
             <if test="isDeleted != null">is_deleted,</if>
-            <if test="createdAt != null">created_at,</if>
         </trim>
         <trim prefix="VALUES(" suffix=")" suffixOverrides=",">
             <if test="targetType != null">#{targetType},</if>
@@ -41,7 +40,6 @@
             <if test="operatorId != null">#{operatorId},</if>
             <if test="remark != null">#{remark},</if>
             <if test="isDeleted != null">#{isDeleted},</if>
-            <if test="createdAt != null">#{createdAt},</if>
         </trim>
     </insert>
 
@@ -62,7 +60,6 @@
             <if test="operatorId != null">operator_id = #{operatorId},</if>
             <if test="remark != null">remark = #{remark},</if>
             <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
-            <if test="createdAt != null">created_at = #{createdAt},</if>
         </set>
         WHERE id = #{id}
     </update>
@@ -70,5 +67,19 @@
     <update id="delete" parameterType="java.lang.Long">
         UPDATE okr_progress_record SET is_deleted = 1 WHERE id = #{id}
     </update>
+
+    <select id="queryByTarget" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_progress_record
+        WHERE target_type = #{targetType} AND target_id = #{targetId} AND is_deleted = 0
+        ORDER BY created_at DESC
+    </select>
+
+    <select id="queryByOperator" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_progress_record
+        WHERE operator_id = #{operatorId} AND is_deleted = 0
+        ORDER BY created_at DESC
+    </select>
 
 </mapper>

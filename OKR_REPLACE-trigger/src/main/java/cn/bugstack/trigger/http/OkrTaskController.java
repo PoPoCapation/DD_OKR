@@ -48,15 +48,33 @@ public class OkrTaskController {
     }
 
     @PostMapping("/delete")
-    public Response<Void> delete(@RequestParam Long taskId) {
+    public Response<Void> delete(@RequestParam("taskId") Long taskId) {
         taskService.deleteTask(taskId);
         return Response.<Void>builder().code(ResponseCode.SUCCESS.getCode()).info(ResponseCode.SUCCESS.getInfo()).build();
     }
 
     @PostMapping("/list")
-    public Response<List<OkrTaskResponseDTO>> list(HttpServletRequest request, @RequestParam Long krId) {
+    public Response<List<OkrTaskResponseDTO>> list(HttpServletRequest request, @RequestParam("krId") Long krId) {
         Long userId = (Long) request.getAttribute("userId");
         List<OkrTaskVO> list = taskQueryCase.queryTaskList(userId, krId);
+        List<OkrTaskResponseDTO> data = list.stream().map(this::toDTO).collect(Collectors.toList());
+        return Response.<List<OkrTaskResponseDTO>>builder()
+                .code(ResponseCode.SUCCESS.getCode())
+                .info(ResponseCode.SUCCESS.getInfo())
+                .data(data)
+                .build();
+    }
+
+    @PostMapping("/assignUsers")
+    public Response<Void> assignUsers(@RequestParam("taskId") Long taskId, @RequestBody List<Long> userIds) {
+        taskService.assignUsers(taskId, userIds);
+        return Response.<Void>builder().code(ResponseCode.SUCCESS.getCode()).info(ResponseCode.SUCCESS.getInfo()).build();
+    }
+
+    @PostMapping("/myTasks")
+    public Response<List<OkrTaskResponseDTO>> myTasks(HttpServletRequest request) {
+        Long userId = (Long) request.getAttribute("userId");
+        List<OkrTaskVO> list = taskService.myTasks(userId);
         List<OkrTaskResponseDTO> data = list.stream().map(this::toDTO).collect(Collectors.toList());
         return Response.<List<OkrTaskResponseDTO>>builder()
                 .code(ResponseCode.SUCCESS.getCode())

@@ -45,4 +45,23 @@
         DELETE FROM okr_task_user WHERE id = #{id}
     </delete>
 
+    <select id="queryUserIdsByTaskId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT user_id FROM okr_task_user WHERE task_id = #{taskId}
+    </select>
+
+    <delete id="deleteByTaskId" parameterType="java.lang.Long">
+        DELETE FROM okr_task_user WHERE task_id = #{taskId}
+    </delete>
+
+    <select id="queryTaskIdsByUserId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT task_id FROM okr_task_user WHERE user_id = #{userId}
+    </select>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO okr_task_user (user_id, task_id) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.userId}, #{item.taskId})
+        </foreach>
+    </insert>
+
 </mapper>

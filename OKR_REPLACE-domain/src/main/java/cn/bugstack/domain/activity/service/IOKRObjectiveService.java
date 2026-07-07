@@ -20,4 +20,7 @@ public interface IOKRObjectiveService {
 
     /** 查询目标列表（按当前用户数据权限过滤） */
     List<OkrObjectiveVO> queryObjectiveList(Long currentUserId);
+
+    /** 重算目标进度（按 KR 加权汇总：Σ(rate×weight) / Σ(weight)） */
+    void recalculateObjectiveProgress(Long objectiveId);
 }

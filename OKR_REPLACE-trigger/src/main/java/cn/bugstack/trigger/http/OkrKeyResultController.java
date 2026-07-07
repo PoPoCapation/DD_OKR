@@ -48,13 +48,13 @@ public class OkrKeyResultController {
     }
 
     @PostMapping("/delete")
-    public Response<Void> delete(@RequestParam Long krId) {
+    public Response<Void> delete(@RequestParam("krId") Long krId) {
         keyResultService.deleteKeyResult(krId);
         return Response.<Void>builder().code(ResponseCode.SUCCESS.getCode()).info(ResponseCode.SUCCESS.getInfo()).build();
     }
 
     @PostMapping("/list")
-    public Response<List<OkrKeyResultResponseDTO>> list(HttpServletRequest request, @RequestParam Long objectiveId) {
+    public Response<List<OkrKeyResultResponseDTO>> list(HttpServletRequest request, @RequestParam("objectiveId") Long objectiveId) {
         Long userId = (Long) request.getAttribute("userId");
         List<OkrKeyResultVO> list = krQueryCase.queryKeyResultList(userId, objectiveId);
         List<OkrKeyResultResponseDTO> data = list.stream().map(this::toDTO).collect(Collectors.toList());

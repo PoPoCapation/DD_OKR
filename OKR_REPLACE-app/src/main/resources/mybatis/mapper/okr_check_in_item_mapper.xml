@@ -74,4 +74,10 @@
         UPDATE okr_check_in_item SET is_deleted = 1 WHERE id = #{id}
     </update>
 
+    <select id="queryByCheckInId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_check_in_item
+        WHERE check_in_id = #{checkInId} AND is_deleted = 0
+    </select>
+
 </mapper>

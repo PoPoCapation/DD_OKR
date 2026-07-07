@@ -70,7 +70,7 @@ public class PermissionController {
 
     /** 删除权限（逻辑删除） */
     @PostMapping("/delete")
-    public Response<Void> delete(@RequestParam(required = false) Long permissionId) {
+    public Response<Void> delete(@RequestParam(value = "permissionId", required = false) Long permissionId) {
         if (permissionId == null) {
             return Response.<Void>builder()
                     .code(ResponseCode.ILLEGAL_PARAMETER.getCode())
@@ -86,7 +86,7 @@ public class PermissionController {
 
     /** 查询权限 */
     @PostMapping("/query")
-    public Response<PermissionResponseDTO> query(@RequestParam(required = false) Long permissionId) {
+    public Response<PermissionResponseDTO> query(@RequestParam(value = "permissionId", required = false) Long permissionId) {
         if (permissionId == null) {
             return Response.<PermissionResponseDTO>builder()
                     .code(ResponseCode.ILLEGAL_PARAMETER.getCode())

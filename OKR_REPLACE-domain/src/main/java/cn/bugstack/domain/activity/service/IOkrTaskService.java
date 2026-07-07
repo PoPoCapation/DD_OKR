@@ -20,4 +20,10 @@ public interface IOkrTaskService {
 
     /** 根据KR ID查询其下所有任务（校验当前用户对该 KR 所属 O 的可见性） */
     List<OkrTaskVO> queryTaskListByKrId(Long currentUserId, Long krId);
+
+    /** 指派任务给用户（全删全插） */
+    void assignUsers(Long taskId, List<Long> userIds);
+
+    /** 查询我的任务（当前用户关联的任务） */
+    List<OkrTaskVO> myTasks(Long currentUserId);
 }

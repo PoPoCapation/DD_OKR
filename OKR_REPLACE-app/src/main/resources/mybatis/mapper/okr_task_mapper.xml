@@ -80,4 +80,13 @@
         ORDER BY priority DESC, createtime DESC
     </select>
 
+    <select id="queryByIds" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_task
+        WHERE is_deleted = 0 AND id IN
+        <foreach collection="ids" item="tid" open="(" separator="," close=")">
+            #{tid}
+        </foreach>
+    </select>
+
 </mapper>
