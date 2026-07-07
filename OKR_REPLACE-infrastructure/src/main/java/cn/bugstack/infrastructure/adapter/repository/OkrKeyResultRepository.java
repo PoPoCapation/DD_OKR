@@ -47,6 +47,21 @@ public class OkrKeyResultRepository implements IOkrKeyResultRepository {
         return list.stream().map(this::toVO).collect(Collectors.toList());
     }
 
+    @Override
+    public List<OkrKeyResultVO> queryKeyResultPage(Long objectiveId, Integer offset, Integer size) {
+        List<OkrKeyResultPO> list = dao.queryPageByObjectiveId(objectiveId, offset, size);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(this::toVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public long countByObjectiveId(Long objectiveId) {
+        Long c = dao.countByObjectiveId(objectiveId);
+        return c == null ? 0L : c;
+    }
+
     private OkrKeyResultPO toPO(OkrKeyResultVO vo) {
         return OkrKeyResultPO.builder()
                 .id(vo.getId())

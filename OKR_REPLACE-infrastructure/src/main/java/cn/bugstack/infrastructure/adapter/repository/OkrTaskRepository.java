@@ -33,8 +33,32 @@ public class OkrTaskRepository implements IOkrTaskRepository {
     }
 
     @Override
+    public OkrTaskVO queryTaskById(Long taskId) {
+        OkrTaskPO po = dao.queryById(taskId);
+        return po == null ? null : toVO(po);
+    }
+
+    @Override
     public List<OkrTaskVO> queryTaskListByKrId(Long krId) {
         List<OkrTaskPO> list = dao.queryByKrId(krId);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(this::toVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OkrTaskVO> queryTaskListByDepartmentId(Long departmentId) {
+        List<OkrTaskPO> list = dao.queryByDepartmentId(departmentId);
+        if (list == null || list.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return list.stream().map(this::toVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<OkrTaskVO> queryAllTasks() {
+        List<OkrTaskPO> list = dao.queryAll();
         if (list == null || list.isEmpty()) {
             return Collections.emptyList();
         }

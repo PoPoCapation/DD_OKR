@@ -22,6 +22,9 @@ public class TaskCreateCaseFactory {
     @Data
     @Builder
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class TaskCreateContext {
+        /** 操作人ID（权限校验 + 审计） */
+        private Long currentUserId;
     }
 }

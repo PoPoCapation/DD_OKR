@@ -5,13 +5,16 @@ import cn.bugstack.domain.activity.adapter.repository.IOkrObjectiveRepository;
 import cn.bugstack.domain.activity.model.entity.OkrKeyResultVO;
 import cn.bugstack.domain.activity.model.entity.OkrObjectiveVO;
 import cn.bugstack.domain.activity.service.IOKRObjectiveService;
+import cn.bugstack.domain.activity.service.IOkrAuditService;
 import cn.bugstack.domain.user.model.entity.SystemUserVO;
 import cn.bugstack.domain.user.service.IUserService;
+import cn.bugstack.types.enums.ProgressTargetType;
 import cn.bugstack.types.enums.ResponseCode;
 import cn.bugstack.types.exception.AppException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -49,6 +52,13 @@ public class OkrObjectiveService implements IOKRObjectiveService {
     @Resource
     private IUserService userService;
 
+    /** 审计服务 —— 写进度流水与操作日志（与业务同事务） */
+    @Resource
+    private IOkrAuditService auditService;
+
+    /** 资源类型常量：目标 */
+    private static final String RESOURCE_OBJECTIVE = "OBJECTIVE";
+
     /**
      * 创建目标（Objective）
      * <p>
@@ -62,6 +72,7 @@ public class OkrObjectiveService implements IOKRObjectiveService {
      * @param vo            目标信息（objectiveName 必填，其余自动填充或可选）
      */
     @Override
+    @Transactional
     public void createObjective(Long currentUserId, OkrObjectiveVO vo) {
         log.info("开始创建Objective: name = {}, currentUserId = {}", vo.getObjectiveName(), currentUserId);
 
@@ -81,6 +92,9 @@ public class OkrObjectiveService implements IOKRObjectiveService {
         if (!objectiveRepository.createObjective(vo)) {
             throw new AppException(ResponseCode.OKR_OBJECTIVE_CREATE_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_CREATE_FAIL.getInfo());
         }
+
+        // 操作日志（after = 新建后的目标快照）
+        auditService.recordOperation("OkrObjectiveService", RESOURCE_OBJECTIVE, vo.getId(), "CREATE", currentUserId, null, vo);
     }
 
     /**
@@ -96,13 +110,16 @@ public class OkrObjectiveService implements IOKRObjectiveService {
      * @throws AppException 无权操作时抛 OKR_OBJECTIVE_NO_PERMISSION
      */
     @Override
+    @Transactional
     public void updateObjective(Long currentUserId, OkrObjectiveVO vo) {
         log.info("开始更新Objective: id = {}, currentUserId = {}", vo.getId(), currentUserId);
         checkOwnership(currentUserId, vo.getId());
+        OkrObjectiveVO before = objectiveRepository.queryObjectiveById(vo.getId());
         vo.setUpdatetime(new Date());
         if (!objectiveRepository.updateObjective(vo)) {
             throw new AppException(ResponseCode.OKR_OBJECTIVE_UPDATE_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_UPDATE_FAIL.getInfo());
         }
+        auditService.recordOperation("OkrObjectiveService", RESOURCE_OBJECTIVE, vo.getId(), "UPDATE", currentUserId, before, vo);
     }
 
     /**
@@ -117,12 +134,16 @@ public class OkrObjectiveService implements IOKRObjectiveService {
      * @throws AppException 无权操作时抛 OKR_OBJECTIVE_NO_PERMISSION
      */
     @Override
+    @Transactional
     public void deleteObjective(Long currentUserId, Long objectiveId) {
         log.info("开始删除Objective: id = {}, currentUserId = {}", objectiveId, currentUserId);
         checkOwnership(currentUserId, objectiveId);
+        OkrObjectiveVO before = objectiveRepository.queryObjectiveById(objectiveId);
         if (!objectiveRepository.deleteObjective(objectiveId)) {
             throw new AppException(ResponseCode.OKR_OBJECTIVE_DELETE_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_DELETE_FAIL.getInfo());
         }
+        // 对齐引用清理见 Phase 3（OkrAlignmentService.cleanReferences）
+        auditService.recordOperation("OkrObjectiveService", RESOURCE_OBJECTIVE, objectiveId, "DELETE", currentUserId, before, null);
     }
 
     /**
@@ -164,18 +185,22 @@ public class OkrObjectiveService implements IOKRObjectiveService {
      * @param objectiveId 目标ID
      */
     @Override
-    public void recalculateObjectiveProgress(Long objectiveId) {
-        log.info("开始重算目标进度: objectiveId = {}", objectiveId);
+    @Transactional
+    public void recalculateObjectiveProgress(Long objectiveId, Long operatorId, String sourceType) {
+        log.info("开始重算目标进度: objectiveId = {}, operatorId = {}, sourceType = {}", objectiveId, operatorId, sourceType);
 
         List<OkrKeyResultVO> krs = keyResultRepository.queryKeyResultListByObjectiveId(objectiveId);
         OkrObjectiveVO vo = objectiveRepository.queryObjectiveById(objectiveId);
         if (vo == null) return; // 目标不存在，静默返回
+
+        BigDecimal oldProgress = vo.getProgress() != null ? vo.getProgress() : BigDecimal.ZERO;
 
         // 无 KR → 进度归零
         if (krs == null || krs.isEmpty()) {
             vo.setProgress(BigDecimal.ZERO);
             vo.setUpdatetime(new Date());
             objectiveRepository.updateObjective(vo);
+            auditService.recordProgress(ProgressTargetType.OBJECTIVE.code(), objectiveId, oldProgress, BigDecimal.ZERO, sourceType, operatorId, "无 KR，进度归零");
             return;
         }
 
@@ -197,6 +222,9 @@ public class OkrObjectiveService implements IOKRObjectiveService {
         vo.setProgress(progress);
         vo.setUpdatetime(new Date());
         objectiveRepository.updateObjective(vo);
+
+        // 写 OBJECTIVE 维度进度流水（old→new），便于追溯目标进度变化轨迹
+        auditService.recordProgress(ProgressTargetType.OBJECTIVE.code(), objectiveId, oldProgress, progress, sourceType, operatorId, "KR 加权重算");
     }
 
     /**

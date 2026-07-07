@@ -2,6 +2,7 @@ package cn.bugstack.infrastructure.dao;
 
 import cn.bugstack.infrastructure.dao.po.OkrKeyResultPO;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -25,4 +26,12 @@ public interface IOkrKeyResultDao {
 
     /** 根据目标ID查询其下所有 KR（不含已删除，按排序） */
     List<OkrKeyResultPO> queryByObjectiveId(Long objectiveId);
+
+    /** 根据目标ID分页查询 KR（offset 从 0 开始） */
+    List<OkrKeyResultPO> queryPageByObjectiveId(@Param("objectiveId") Long objectiveId,
+                                                @Param("offset") Integer offset,
+                                                @Param("size") Integer size);
+
+    /** 统计某目标下的 KR 数量 */
+    Long countByObjectiveId(@Param("objectiveId") Long objectiveId);
 }

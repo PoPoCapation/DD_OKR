@@ -22,6 +22,9 @@ public class KrCreateCaseFactory {
     @Data
     @Builder
     @NoArgsConstructor
+    @AllArgsConstructor
     public static class KrCreateContext {
+        /** 操作人ID（权限校验 + 审计） */
+        private Long currentUserId;
     }
 }

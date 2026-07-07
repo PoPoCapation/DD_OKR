@@ -16,10 +16,13 @@ public class KrCreateCaseService implements IKrCreateCase {
     private KrCreateCaseFactory factory;
 
     @Override
-    public Boolean createKeyResult(OkrKeyResultVO vo) {
+    public Boolean createKeyResult(Long currentUserId, OkrKeyResultVO vo) {
+        KrCreateCaseFactory.KrCreateContext ctx = KrCreateCaseFactory.KrCreateContext.builder()
+                .currentUserId(currentUserId)
+                .build();
         StrategyHandler<OkrKeyResultVO, KrCreateCaseFactory.KrCreateContext, Boolean> handler = factory.strategyHandler();
         try {
-            return handler.apply(vo, new KrCreateCaseFactory.KrCreateContext());
+            return handler.apply(vo, ctx);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {

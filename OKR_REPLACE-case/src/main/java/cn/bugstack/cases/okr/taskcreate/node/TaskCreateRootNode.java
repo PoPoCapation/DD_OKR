@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("TaskCreateRootNode")
 public class TaskCreateRootNode extends AbstractTaskCreateCaseSupport {
-    @Resource(name = "SetDefaultTaskNode")
-    private SetDefaultTaskNode setDefaultTaskNode;
+    @Resource(name = "ValidateTaskNode")
+    private ValidateTaskNode validateTaskNode;
 
     @Override
     protected Boolean doApply(OkrTaskVO vo, TaskCreateCaseFactory.TaskCreateContext ctx) throws Exception {
@@ -20,6 +20,6 @@ public class TaskCreateRootNode extends AbstractTaskCreateCaseSupport {
 
     @Override
     public StrategyHandler<OkrTaskVO, TaskCreateCaseFactory.TaskCreateContext, Boolean> get(OkrTaskVO vo, TaskCreateCaseFactory.TaskCreateContext ctx) throws Exception {
-        return setDefaultTaskNode;
+        return validateTaskNode;
     }
 }

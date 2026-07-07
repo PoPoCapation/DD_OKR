@@ -6,5 +6,5 @@ import cn.bugstack.domain.activity.model.entity.OkrKeyResultVO;
  * 创建 KR 用例编排
  */
 public interface IKrCreateCase {
-    Boolean createKeyResult(OkrKeyResultVO vo);
+    Boolean createKeyResult(Long currentUserId, OkrKeyResultVO vo);
 }

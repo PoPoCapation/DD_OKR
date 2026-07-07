@@ -19,4 +19,10 @@ public interface IOkrKeyResultRepository {
     OkrKeyResultVO queryKeyResultById(Long krId);
 
     List<OkrKeyResultVO> queryKeyResultListByObjectiveId(Long objectiveId);
+
+    /** 分页查询某目标下的 KR（offset 从 0 开始） */
+    List<OkrKeyResultVO> queryKeyResultPage(Long objectiveId, Integer offset, Integer size);
+
+    /** 统计某目标下的 KR 数量 */
+    long countByObjectiveId(Long objectiveId);
 }

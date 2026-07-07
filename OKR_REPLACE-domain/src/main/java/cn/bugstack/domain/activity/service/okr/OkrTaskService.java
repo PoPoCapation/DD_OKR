@@ -7,33 +7,42 @@ import cn.bugstack.domain.activity.adapter.repository.IOkrTaskUserRepository;
 import cn.bugstack.domain.activity.model.entity.OkrKeyResultVO;
 import cn.bugstack.domain.activity.model.entity.OkrObjectiveVO;
 import cn.bugstack.domain.activity.model.entity.OkrTaskVO;
+import cn.bugstack.domain.activity.service.IOkrAuditService;
 import cn.bugstack.domain.activity.service.IOkrTaskService;
+import cn.bugstack.domain.user.model.entity.SystemUserVO;
 import cn.bugstack.domain.user.service.IUserService;
+import cn.bugstack.types.enums.ProgressTargetType;
 import cn.bugstack.types.enums.ResponseCode;
 import cn.bugstack.types.exception.AppException;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
  * OKR 任务（Task）领域服务
  * <p>
  * 职责：
- * 1. Task 的 CRUD（创建/更新/删除/按KR查询）
- * 2. 任务指派（assignUsers）—— 全删全插模式，先删 okr_task_user 旧关联再批量插入新的
- * 3. 「我的任务」查询（myTasks）—— 通过 okr_task_user 关联表反查当前用户被指派的任务
- * 4. 数据权限 —— 查询 Task 列表时校验当前用户对 KR→O 链路的可见性
+ * 1. Task 的 CRUD（创建/更新/删除/按KR查询/部门查询/全部查询）
+ * 2. 任务指派（assignUsers）—— 全删全插模式
+ * 3. 「我的任务」查询（myTasks）—— 通过 okr_task_user 关联表反查
+ * 4. 数据权限 —— 创建时校验 KR 所属目标在可编辑范围内；查询时校验可见性
+ * 5. 审计 —— 状态变更写 TASK 进度流水；增删改/指派写操作日志
  * <p>
  * 层级关系：O（目标）→ KR（关键结果）→ Task（任务）
- * Task 必须挂在某个 KR 下，查看 Task 需要验证用户能看对应的 KR 和 O。
  *
  * @see IOkrTaskService 接口定义
  */
 @Slf4j
 @Service
 public class OkrTaskService implements IOkrTaskService {
+
+    private static final String SOURCE_TASK_UPDATE = "TASK_UPDATE";
+    private static final String RESOURCE_TASK = "TASK";
 
     /** Task Repository —— 封装 okr_task 表的增删改查 */
     @Resource
@@ -43,11 +52,11 @@ public class OkrTaskService implements IOkrTaskService {
     @Resource
     private IOkrKeyResultRepository keyResultRepository;
 
-    /** 目标 Repository —— 查询 O 信息（获取 ownerUserId，判断当前用户是否可见） */
+    /** 目标 Repository —— 查询 O 信息（获取 ownerUserId/departmentId，判断可编辑/可见） */
     @Resource
     private IOkrObjectiveRepository objectiveRepository;
 
-    /** 用户服务 —— 获取可见用户列表（数据权限校验用） */
+    /** 用户服务 —— 获取可见/可编辑用户列表、当前用户部门 */
     @Resource
     private IUserService userService;
 
@@ -55,134 +64,190 @@ public class OkrTaskService implements IOkrTaskService {
     @Resource
     private IOkrTaskUserRepository taskUserRepository;
 
+    /** 审计服务 —— 写 TASK 进度流水与操作日志 */
+    @Resource
+    private IOkrAuditService auditService;
+
     /**
      * 创建任务
      * <p>
-     * 业务逻辑：调用 Repository 持久化，失败抛 OKR_TASK_CREATE_FAIL。
-     * 注意：前端创建任务时需要传 krId（关联的KR ID）。
+     * 业务逻辑：
+     * 1. 校验 KR 存在，且其所属目标在当前用户的可编辑范围内（自己或下级的目标）
+     * 2. 设置默认值（status=todo、priority=2、isDeleted=0、时间）；departmentId 取自父目标
+     * 3. 持久化，失败抛 OKR_TASK_CREATE_FAIL
+     * 4. 写操作日志（CREATE）
      *
-     * @param vo 任务信息（taskName + krId 必填，priority/status 可选）
+     * @param currentUserId 操作人
+     * @param vo            任务信息（taskName + krId 必填）
      */
     @Override
-    public void createTask(OkrTaskVO vo) {
-        log.info("开始创建Task: taskName = {}, krId = {}", vo.getTaskName(), vo.getKrId());
+    @Transactional
+    public void createTask(Long currentUserId, OkrTaskVO vo) {
+        log.info("开始创建Task: taskName = {}, krId = {}, currentUserId = {}", vo.getTaskName(), vo.getKrId(), currentUserId);
+        OkrObjectiveVO objective = loadAndCheckEditable(currentUserId, vo.getKrId());
+
+        // 默认值
+        if (vo.getStatus() == null) vo.setStatus("todo");
+        if (vo.getPriority() == null) vo.setPriority(2);
+        if (vo.getIsDeleted() == null) vo.setIsDeleted(0);
+        vo.setDepartmentId(objective.getDepartmentId());
+        vo.setCreatetime(new Date());
+        vo.setUpdatetime(new Date());
+
         if (!repository.createTask(vo)) {
             throw new AppException(ResponseCode.OKR_TASK_CREATE_FAIL.getCode(), ResponseCode.OKR_TASK_CREATE_FAIL.getInfo());
         }
+        auditService.recordOperation("OkrTaskService", RESOURCE_TASK, vo.getId(), "CREATE", currentUserId, null, vo);
     }
 
     /**
      * 更新任务
      * <p>
-     * 业务逻辑：调用 Repository 更新（动态 SQL，只更新非 null 字段），失败抛 OKR_TASK_UPDATE_FAIL。
+     * 业务逻辑：
+     * 1. 查旧任务（记旧状态，用于状态变更流水与日志前后快照）
+     * 2. 动态更新，失败抛 OKR_TASK_UPDATE_FAIL
+     * 3. 若 status 发生变化：写 TASK 进度流水（old→new，按状态映射进度值）
+     * 4. 写操作日志（UPDATE，前后快照）
      *
-     * @param vo 任务信息（id 必填，其余为要更新的字段）
+     * @param currentUserId 操作人
+     * @param vo            任务信息（id 必填）
      */
     @Override
-    public void updateTask(OkrTaskVO vo) {
-        log.info("开始更新Task: id = {}", vo.getId());
+    @Transactional
+    public void updateTask(Long currentUserId, OkrTaskVO vo) {
+        log.info("开始更新Task: id = {}, currentUserId = {}", vo.getId(), currentUserId);
+        OkrTaskVO before = repository.queryTaskById(vo.getId());
+        if (before == null) {
+            throw new AppException(ResponseCode.OKR_TASK_FIND_FAIL.getCode(), ResponseCode.OKR_TASK_FIND_FAIL.getInfo());
+        }
+        vo.setUpdatetime(new Date());
         if (!repository.updateTask(vo)) {
             throw new AppException(ResponseCode.OKR_TASK_UPDATE_FAIL.getCode(), ResponseCode.OKR_TASK_UPDATE_FAIL.getInfo());
         }
+
+        // 状态变更 → 写 TASK 进度流水（按状态映射进度值）
+        if (vo.getStatus() != null && !vo.getStatus().equals(before.getStatus())) {
+            BigDecimal oldProgress = statusToProgress(before.getStatus());
+            BigDecimal newProgress = statusToProgress(vo.getStatus());
+            auditService.recordProgress(ProgressTargetType.TASK.code(), vo.getId(), oldProgress, newProgress,
+                    SOURCE_TASK_UPDATE, currentUserId, "状态变更: " + before.getStatus() + "->" + vo.getStatus());
+        }
+        OkrTaskVO after = repository.queryTaskById(vo.getId());
+        auditService.recordOperation("OkrTaskService", RESOURCE_TASK, vo.getId(), "UPDATE", currentUserId, before, after);
     }
 
     /**
      * 删除任务（逻辑删除）
-     * <p>
-     * 业务逻辑：调用 Repository 逻辑删除（is_deleted=1），失败抛 OKR_TASK_DELETE_FAIL。
-     *
-     * @param taskId 要删除的任务ID
      */
     @Override
-    public void deleteTask(Long taskId) {
-        log.info("开始删除Task: id = {}", taskId);
+    @Transactional
+    public void deleteTask(Long currentUserId, Long taskId) {
+        log.info("开始删除Task: id = {}, currentUserId = {}", taskId, currentUserId);
+        OkrTaskVO before = repository.queryTaskById(taskId);
+        if (before == null) {
+            throw new AppException(ResponseCode.OKR_TASK_FIND_FAIL.getCode(), ResponseCode.OKR_TASK_FIND_FAIL.getInfo());
+        }
         if (!repository.deleteTask(taskId)) {
             throw new AppException(ResponseCode.OKR_TASK_DELETE_FAIL.getCode(), ResponseCode.OKR_TASK_DELETE_FAIL.getInfo());
         }
+        auditService.recordOperation("OkrTaskService", RESOURCE_TASK, taskId, "DELETE", currentUserId, before, null);
     }
 
     /**
-     * 查询某 KR 下的所有任务（带数据权限校验）
-     * <p>
-     * 权限校验链路：Task → KR → Objective → ownerUserId → 可见用户列表
-     * 1. 查 KR，不存在抛 OKR_KR_FIND_FAIL
-     * 2. 通过 KR.objectiveId 查父目标，不存在抛 OKR_OBJECTIVE_FIND_FAIL
-     * 3. 用 {@link IUserService#queryVisibleUserIds} 获取可见用户（自己+上级+下级）
-     * 4. 判断 O.ownerUserId 是否在可见范围内，不可见抛 OKR_OBJECTIVE_NO_PERMISSION
-     * 5. 可见则返回该 KR 下所有任务
-     *
-     * @param currentUserId 当前登录用户ID
-     * @param krId          KR ID
-     * @return 该 KR 下的任务列表
-     * @throws AppException KR/目标不存在 或 无权查看
+     * 查询某 KR 下的所有任务（带数据权限校验：Task→KR→O→owner 可见性）
      */
     @Override
     public List<OkrTaskVO> queryTaskListByKrId(Long currentUserId, Long krId) {
         log.info("开始查询Task列表: currentUserId = {}, krId = {}", currentUserId, krId);
-
-        // 查 KR → 获取 objectiveId
-        OkrKeyResultVO kr = keyResultRepository.queryKeyResultById(krId);
-        if (kr == null) {
-            throw new AppException(ResponseCode.OKR_KR_FIND_FAIL.getCode(), ResponseCode.OKR_KR_FIND_FAIL.getInfo());
-        }
-
-        // 查 O → 获取 ownerUserId
-        OkrObjectiveVO objective = objectiveRepository.queryObjectiveById(kr.getObjectiveId());
-        if (objective == null) {
-            throw new AppException(ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getInfo());
-        }
-
-        // 数据权限：当前用户必须对该 O 可见（能看 O 才能看 O→KR→Task 链路）
-        List<Long> visibleUserIds = userService.queryVisibleUserIds(currentUserId);
-        if (!visibleUserIds.contains(objective.getOwnerUserId())) {
-            throw new AppException(ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getCode(), ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getInfo());
-        }
-
+        checkVisibleByKr(currentUserId, krId);
         return repository.queryTaskListByKrId(krId);
     }
 
     /**
-     * 指派任务给用户（全删全插模式）
-     * <p>
-     * 业务逻辑：
-     * 1. 先删除该任务的所有旧关联（DELETE FROM okr_task_user WHERE task_id = ?）
-     * 2. 批量插入新关联（INSERT INTO okr_task_user (user_id, task_id) VALUES ...）
-     * <p>
-     * 这样设计简单可靠：不需要 diff 新旧列表，直接全量替换。
-     * 如果 userIds 为空，则等于取消所有指派。
-     *
-     * @param taskId  任务ID
-     * @param userIds 要指派的用户ID列表（全量替换）
+     * 指派任务给用户（全删全插模式）+ 操作日志。
      */
     @Override
-    public void assignUsers(Long taskId, List<Long> userIds) {
-        log.info("开始指派任务: taskId = {}, userIds = {}", taskId, userIds);
+    @Transactional
+    public void assignUsers(Long currentUserId, Long taskId, List<Long> userIds) {
+        log.info("开始指派任务: taskId = {}, userIds = {}, currentUserId = {}", taskId, userIds, currentUserId);
+        List<Long> before = taskUserRepository.queryUserIdsByTaskId(taskId);
         taskUserRepository.assignUsers(taskId, userIds);
+        auditService.recordOperation("OkrTaskService", RESOURCE_TASK, taskId, "ASSIGN", currentUserId, before, userIds);
     }
 
-    /**
-     * 查询「我的任务」
-     * <p>
-     * 业务逻辑：
-     * 1. 通过 okr_task_user 关联表查出当前用户被指派的所有 taskId
-     * 2. 批量查询这些 task 的详细信息（WHERE id IN (...)）
-     * 3. 返回任务列表
-     * <p>
-     * 与 queryTaskListByKrId 的区别：
-     * - queryTaskListByKrId：按 KR 查（需要权限校验）
-     * - myTasks：按当前用户查（通过关联表，不需要额外权限校验，因为只查指派给自己的）
-     *
-     * @param currentUserId 当前登录用户ID
-     * @return 被指派给当前用户的任务列表
-     */
     @Override
     public List<OkrTaskVO> myTasks(Long currentUserId) {
         log.info("开始查询我的任务: currentUserId = {}", currentUserId);
-
-        // 先查关联表获取 taskId 列表
         List<Long> taskIds = taskUserRepository.queryTaskIdsByUserId(currentUserId);
-
-        // 批量查任务详情
         return repository.queryTasksByTaskIds(taskIds);
+    }
+
+    /**
+     * 查询当前用户所在部门的任务（按 department_id 过滤）。
+     */
+    @Override
+    public List<OkrTaskVO> queryDepartmentTasks(Long currentUserId) {
+        log.info("开始查询部门任务: currentUserId = {}", currentUserId);
+        SystemUserVO user = userService.queryUserByUserId(currentUserId);
+        if (user == null || user.getDepartmentId() == null) {
+            return java.util.Collections.emptyList();
+        }
+        return repository.queryTaskListByDepartmentId(user.getDepartmentId());
+    }
+
+    /**
+     * 查询所有任务（管理视图）。
+     */
+    @Override
+    public List<OkrTaskVO> queryAllTasks() {
+        log.info("开始查询所有任务");
+        return repository.queryAllTasks();
+    }
+
+    // ==================== 内部辅助 ====================
+
+    /** 加载 KR→O 并校验当前用户对父目标的可编辑权限，返回父目标 */
+    private OkrObjectiveVO loadAndCheckEditable(Long currentUserId, Long krId) {
+        OkrKeyResultVO kr = keyResultRepository.queryKeyResultById(krId);
+        if (kr == null) {
+            throw new AppException(ResponseCode.OKR_KR_FIND_FAIL.getCode(), ResponseCode.OKR_KR_FIND_FAIL.getInfo());
+        }
+        OkrObjectiveVO objective = objectiveRepository.queryObjectiveById(kr.getObjectiveId());
+        if (objective == null) {
+            throw new AppException(ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getInfo());
+        }
+        List<Long> editableUserIds = userService.queryEditableUserIds(currentUserId);
+        if (!editableUserIds.contains(objective.getOwnerUserId())) {
+            throw new AppException(ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getCode(), ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getInfo());
+        }
+        return objective;
+    }
+
+    /** 校验当前用户对 KR 所属目标的可见性 */
+    private void checkVisibleByKr(Long currentUserId, Long krId) {
+        OkrKeyResultVO kr = keyResultRepository.queryKeyResultById(krId);
+        if (kr == null) {
+            throw new AppException(ResponseCode.OKR_KR_FIND_FAIL.getCode(), ResponseCode.OKR_KR_FIND_FAIL.getInfo());
+        }
+        OkrObjectiveVO objective = objectiveRepository.queryObjectiveById(kr.getObjectiveId());
+        if (objective == null) {
+            throw new AppException(ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getInfo());
+        }
+        List<Long> visibleUserIds = userService.queryVisibleUserIds(currentUserId);
+        if (!visibleUserIds.contains(objective.getOwnerUserId())) {
+            throw new AppException(ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getCode(), ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getInfo());
+        }
+    }
+
+    /** 任务状态 → 进度值映射（用于 TASK 维度进度流水） */
+    private BigDecimal statusToProgress(String status) {
+        if (status == null) return BigDecimal.ZERO;
+        switch (status) {
+            case "done": return new BigDecimal("100");
+            case "ongoing": return new BigDecimal("50");
+            case "cancel":
+            case "todo":
+            default: return BigDecimal.ZERO;
+        }
     }
 }

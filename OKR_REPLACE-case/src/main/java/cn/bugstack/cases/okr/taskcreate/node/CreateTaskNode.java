@@ -2,14 +2,12 @@ package cn.bugstack.cases.okr.taskcreate.node;
 
 import cn.bugstack.cases.okr.taskcreate.factory.TaskCreateCaseFactory;
 import cn.bugstack.domain.activity.model.entity.OkrTaskVO;
-import cn.bugstack.types.enums.ResponseCode;
-import cn.bugstack.types.exception.AppException;
 import cn.bugstack.wrench.design.framework.tree.StrategyHandler;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-/** 节点2：创建 Task */
+/** 节点2：持久化 Task（委托 domain service，由 service 完成默认值/权限已校验/持久化/审计） */
 @Slf4j
 @Service("CreateTaskNode")
 public class CreateTaskNode extends AbstractTaskCreateCaseSupport {
@@ -18,9 +16,8 @@ public class CreateTaskNode extends AbstractTaskCreateCaseSupport {
 
     @Override
     protected Boolean doApply(OkrTaskVO vo, TaskCreateCaseFactory.TaskCreateContext ctx) throws Exception {
-        if (!taskRepository.createTask(vo)) {
-            throw new AppException(ResponseCode.OKR_TASK_CREATE_FAIL.getCode(), ResponseCode.OKR_TASK_CREATE_FAIL.getInfo());
-        }
+        // 调用 domain service：内部完成默认值、持久化、操作日志
+        taskService.createTask(ctx.getCurrentUserId(), vo);
         return router(vo, ctx);
     }
 

@@ -15,8 +15,17 @@ public interface IOkrTaskRepository {
 
     boolean deleteTask(Long taskId);
 
+    /** 根据ID查询单个任务 */
+    OkrTaskVO queryTaskById(Long taskId);
+
     List<OkrTaskVO> queryTaskListByKrId(Long krId);
 
     /** 按任务ID列表批量查询任务 */
     List<OkrTaskVO> queryTasksByTaskIds(List<Long> taskIds);
+
+    /** 按部门ID查询任务 */
+    List<OkrTaskVO> queryTaskListByDepartmentId(Long departmentId);
+
+    /** 查询所有未删除任务 */
+    List<OkrTaskVO> queryAllTasks();
 }

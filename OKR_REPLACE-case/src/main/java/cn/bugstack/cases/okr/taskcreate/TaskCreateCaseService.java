@@ -16,10 +16,13 @@ public class TaskCreateCaseService implements ITaskCreateCase {
     private TaskCreateCaseFactory factory;
 
     @Override
-    public Boolean createTask(OkrTaskVO vo) {
+    public Boolean createTask(Long currentUserId, OkrTaskVO vo) {
+        TaskCreateCaseFactory.TaskCreateContext ctx = TaskCreateCaseFactory.TaskCreateContext.builder()
+                .currentUserId(currentUserId)
+                .build();
         StrategyHandler<OkrTaskVO, TaskCreateCaseFactory.TaskCreateContext, Boolean> handler = factory.strategyHandler();
         try {
-            return handler.apply(vo, new TaskCreateCaseFactory.TaskCreateContext());
+            return handler.apply(vo, ctx);
         } catch (AppException e) {
             throw e;
         } catch (Exception e) {

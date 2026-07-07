@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service("KrCreateRootNode")
 public class KrCreateRootNode extends AbstractKrCreateCaseSupport {
-    @Resource(name = "SetDefaultKrNode")
-    private SetDefaultKrNode setDefaultKrNode;
+    @Resource(name = "ValidateKrNode")
+    private ValidateKrNode validateKrNode;
 
     @Override
     protected Boolean doApply(OkrKeyResultVO vo, KrCreateCaseFactory.KrCreateContext ctx) throws Exception {
@@ -20,6 +20,6 @@ public class KrCreateRootNode extends AbstractKrCreateCaseSupport {
 
     @Override
     public StrategyHandler<OkrKeyResultVO, KrCreateCaseFactory.KrCreateContext, Boolean> get(OkrKeyResultVO vo, KrCreateCaseFactory.KrCreateContext ctx) throws Exception {
-        return setDefaultKrNode;
+        return validateKrNode;
     }
 }
