@@ -174,3 +174,59 @@ WITH RECURSIVE role_tree AS (
 )
 SELECT DISTINCT perm_code WHERE role_id IN (SELECT id FROM role_tree)
 ```
+
+---
+
+## 本次迭代完成记录(v2)
+
+### 完成了什么
+
+1. **`leader_user_id` 全链补齐**:之前只有 SQL 层(CTE 递归)能用 leader_user_id,Java 层不通。补齐 `SysUserPO` / `SystemUserVO` 加字段 + `sys_user_mapper.xml`(resultMap + column list + insert + update)+ `UserRepository` 4 处 PO↔VO 映射。Java 层现在能 CRUD 用户的上级。
+2. **可见 vs 可编辑权限分离**:
+   - `queryVisibleUserIds`(自己 + 上级 + 下级)→ 查询列表(能看)
+   - `queryEditableUserIds`(自己 + 下级,不含上级)→ 编辑校验(能改/删)
+   - 效果:下级能看上级 OKR 但不能改,上级能改下级,自己能改自己
+3. **KR / Task 增删改查**:VO + IService/Service + IRepository/Repository + DAO(补 `queryByObjectiveId` / `queryByKrId`)+ mapper + Controller + DTO,全套 CRUD。数据权限:KR 校验所属 O 可见,Task 校验 KR→O 可见。
+4. **KR/Task case 编排(32 文件)**:对齐 O 的模式,4 套 case(`krcreate` / `krquery` / `taskcreate` / `taskquery`),每套 Interface + Service + Factory + Abstract + 4 Node。Controller 的 create/list 改走 case,update/delete 走 service。
+5. **case 层重构**:每用例拆独立包(`cases/auth/login`、`cases/okr/krcreate` 等),节点不再混在一个 node 目录(之前 `cases/auth/node` 混了登录 + 注册节点)。
+6. **前端美化(Tailwind v4)**:换掉纯 CSS,装 Tailwind(vite 插件 + `@theme` 自定义主色 #3370ff / #25d0a2 / #fd5b5b)。3 页面:对齐视图 / OKRs 列表 / 任务列表,浅色 SaaS 风格(玻璃拟态卡片 + 圆角 + 浅阴影)。
+7. **精美登录页 + 前后端合并**:玻璃拟态登录/注册页(渐变背景 + Logo + tab 切换)。登录后进 3 页面,数据从后端拉(不再硬编码)。`request` 封装自动带 `Authorization: Bearer <token>`。
+8. **所有按钮绑 API + 菜单精简**:顶部菜单只留 OKRs / 对齐 / 任务 3 个。OKRs 页的创建目标 / 创建 KR / 删除 / 改进度;任务页的查询 / 创建 / 删除;对齐视图点击删除 —— 全部调真实后端接口。任务页从 KR 一键跳转(带 krId 自动查)。
+
+### 怎么完成的(关键改动)
+
+| 模块 | 关键文件 | 改动 |
+|---|---|---|
+| 数据权限 | `sys_user_mapper.xml` / `ISysUserDao` / `IUserRepository` / `IUserService` / `UserRepository` / `UserService` | 新增 `queryEditableUserIds`(CTE 递归自己 + 下级,不加上级) |
+| OKR 业务 | `OkrKeyResultVO` / `OkrTaskVO` + 各自 Service/Repository/DAO/mapper/Controller/DTO | KR/Task 全套 CRUD + 数据权限校验(KR 校验 O 可见,Task 校验 KR→O 可见) |
+| case 编排 | `cases/okr/krcreate` / `krquery` / `taskcreate` / `taskquery` | 4 套 case(每套 8 文件:Interface/Service/Factory/Abstract + 4 Node) |
+| 前端样式 | `vite.config.ts` / `index.css` / `package.json` | Tailwind v4 插件 + `@theme` 自定义主色 |
+| 前端页面 | `components/LoginPage` / `TopNav` / `SideNav` / `ProgressCard` + `pages/AlignmentView` / `OKROverview` / `TaskEmptyState` | 精美登录页 + 3 页面调真实 API + 所有按钮绑接口 |
+| 权限分离 | `OkrObjectiveService.checkOwnership` | `queryVisibleUserIds` → `queryEditableUserIds`(编辑校验用可编辑范围) |
+| KR 进度修改 | `OKROverview` 的"改进度"按钮 | 调 `/api/okr/keyresult/update {id, completionRate}` |
+| 任务页跳转 | `App.tsx` + `OKROverview` + `TaskEmptyState` | KR 行"任务"按钮 → setKrId + 切任务页 → 自动查 |
+
+### 关键设计:可见 ≠ 可编辑
+
+```
+查询列表(能看):  queryVisibleUserIds  = 自己 + 上级 + 下级
+编辑校验(能改):  queryEditableUserIds = 自己 + 下级(不含上级)
+```
+
+SQL 区别:`queryVisibleUserIds` 多一个 `UNION SELECT leader_user_id`(加上级),`queryEditableUserIds` 没有。
+
+### 前端按钮 → 后端 API 映射
+
+| 页面 | 按钮 | 接口 |
+|---|---|---|
+| 登录页 | 登录 / 注册 | `/api/login` / `/api/register` |
+| 对齐视图 | 点击目标卡片 | `/api/okr/objective/delete` |
+| OKRs 列表 | + 添加目标 | `/api/okr/objective/create` |
+| OKRs 列表 | 删除目标 | `/api/okr/objective/delete` |
+| OKRs 列表 | + KR | `/api/okr/keyresult/create` |
+| OKRs 列表 | 改进度 | `/api/okr/keyresult/update` |
+| OKRs 列表 | 删除 KR | `/api/okr/keyresult/delete` |
+| OKRs 列表 | 任务(跳转) | 切任务页 + 带 krId |
+| 任务列表 | 查询 | `/api/okr/task/list` |
+| 任务列表 | + 创建任务 | `/api/okr/task/create` |
+| 任务列表 | 删除任务 | `/api/okr/task/delete` |

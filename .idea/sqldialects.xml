@@ -2,5 +2,9 @@
 <project version="4">
   <component name="SqlDialectMappings">
     <file url="file://$PROJECT_DIR$/docs/dev-ops/mysql/sql/schema.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/okr-hierarchy-seed.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/okr-seed.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/rbac-seed.sql" dialect="MySQL" />
+    <file url="file://$PROJECT_DIR$/docs/rbac-tables.sql" dialect="MySQL" />
   </component>
 </project>

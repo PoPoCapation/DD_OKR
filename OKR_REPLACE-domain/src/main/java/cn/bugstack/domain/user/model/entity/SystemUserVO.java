@@ -21,6 +21,8 @@ public class SystemUserVO {
     private String password;
     /** 所属部门ID */
     private Long departmentId;
+    /** 直属上级用户ID（汇报关系） */
+    private Long leaderUserId;
     /** 账号状态：1启用，0禁用 */
     private Integer status;
     /** 是否删除：0未删除，1已删除 */

@@ -57,6 +57,16 @@ public enum ResponseCode {
     OKR_OBJECTIVE_FIND_FAIL("0036" ,"查询目标失败"),
     OKR_OBJECTIVE_NO_PERMISSION("0037" ,"无权操作该目标"),
 
+    OKR_KR_CREATE_FAIL("0038" ,"创建关键结果失败"),
+    OKR_KR_UPDATE_FAIL("0039" ,"更新关键结果失败"),
+    OKR_KR_DELETE_FAIL("0040" ,"删除关键结果失败"),
+    OKR_KR_FIND_FAIL("0041" ,"查询关键结果失败"),
+
+    OKR_TASK_CREATE_FAIL("0042" ,"创建任务失败"),
+    OKR_TASK_UPDATE_FAIL("0043" ,"更新任务失败"),
+    OKR_TASK_DELETE_FAIL("0044" ,"删除任务失败"),
+    OKR_TASK_FIND_FAIL("0045" ,"查询任务失败"),
+
     ;
 
     private String code;

@@ -21,7 +21,6 @@ public class UserService implements IUserService {
     @Override
     public void createUser(SystemUserVO systemUserVO) {
         log.info("开始创建User: UserUnionAccount = {}" , systemUserVO.getAccount());
-        // 密码 BCrypt 加密后存储，登录时用 PasswordEncoder.matches 校验
         systemUserVO.setPassword(PasswordEncoder.encode(systemUserVO.getPassword()));
         boolean isCreate = repository.createUser(systemUserVO);
         if (!isCreate) {
@@ -83,5 +82,11 @@ public class UserService implements IUserService {
     public List<Long> queryVisibleUserIds(Long userId) {
         log.info("开始查询可见用户(汇报关系): userId = {}", userId);
         return repository.queryVisibleUserIds(userId);
+    }
+
+    @Override
+    public List<Long> queryEditableUserIds(Long userId) {
+        log.info("开始查询可编辑用户(自己+下级): userId = {}", userId);
+        return repository.queryEditableUserIds(userId);
     }
 }

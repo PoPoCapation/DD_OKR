@@ -32,4 +32,9 @@ public interface ISysUserDao {
      * （自己 + 直属上级 + 全部下级递归）
      */
     List<Long> queryVisibleUserIds(@Param("userId") Long userId);
+
+    /**
+     * 查询当前用户可编辑的用户ID（自己 + 全部下级递归，不含上级）
+     */
+    List<Long> queryEditableUserIds(@Param("userId") Long userId);
 }

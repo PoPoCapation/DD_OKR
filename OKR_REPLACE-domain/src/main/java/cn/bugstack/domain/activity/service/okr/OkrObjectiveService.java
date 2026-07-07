@@ -16,7 +16,7 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * OKR 目标 Service（数据权限按汇报关系：自己 + 直属上级 + 全部下级递归）
+ * OKR Ŀ�� Service������Ȩ�ް��㱨��ϵ���Լ� + ֱ���ϼ� + ȫ���¼��ݹ飩
  */
 @Slf4j
 @Service
@@ -29,7 +29,7 @@ public class OkrObjectiveService implements IOKRObjectiveService {
 
     @Override
     public void createObjective(Long currentUserId, OkrObjectiveVO vo) {
-        log.info("开始创建Objective: name = {}, currentUserId = {}", vo.getObjectiveName(), currentUserId);
+        log.info("��ʼ����Objective: name = {}, currentUserId = {}", vo.getObjectiveName(), currentUserId);
         SystemUserVO currentUser = userService.queryUserByUserId(currentUserId);
         vo.setOwnerUserId(currentUserId);
         vo.setDepartmentId(currentUser.getDepartmentId());
@@ -45,7 +45,7 @@ public class OkrObjectiveService implements IOKRObjectiveService {
 
     @Override
     public void updateObjective(Long currentUserId, OkrObjectiveVO vo) {
-        log.info("开始更新Objective: id = {}, currentUserId = {}", vo.getId(), currentUserId);
+        log.info("��ʼ����Objective: id = {}, currentUserId = {}", vo.getId(), currentUserId);
         checkOwnership(currentUserId, vo.getId());
         vo.setUpdatetime(new Date());
         if (!objectiveRepository.updateObjective(vo)) {
@@ -55,7 +55,7 @@ public class OkrObjectiveService implements IOKRObjectiveService {
 
     @Override
     public void deleteObjective(Long currentUserId, Long objectiveId) {
-        log.info("开始删除Objective: id = {}, currentUserId = {}", objectiveId, currentUserId);
+        log.info("��ʼɾ��Objective: id = {}, currentUserId = {}", objectiveId, currentUserId);
         checkOwnership(currentUserId, objectiveId);
         if (!objectiveRepository.deleteObjective(objectiveId)) {
             throw new AppException(ResponseCode.OKR_OBJECTIVE_DELETE_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_DELETE_FAIL.getInfo());
@@ -64,21 +64,22 @@ public class OkrObjectiveService implements IOKRObjectiveService {
 
     @Override
     public List<OkrObjectiveVO> queryObjectiveList(Long currentUserId) {
-        log.info("开始查询Objective列表(汇报关系): currentUserId = {}", currentUserId);
-        // 可见用户 = 自己 + 直属上级 + 全部下级递归
+        log.info("��ʼ��ѯObjective�б�(�㱨��ϵ): currentUserId = {}", currentUserId);
+        // �ɼ��û� = �Լ� + ֱ���ϼ� + ȫ���¼��ݹ�
         List<Long> visibleUserIds = userService.queryVisibleUserIds(currentUserId);
         return objectiveRepository.queryObjectiveListByUserIds(visibleUserIds);
     }
 
-    /** 校验当前用户是否有权操作该目标（目标负责人在可见用户范围内） */
+    /** У�鵱ǰ�û��Ƿ���Ȩ������Ŀ�꣨Ŀ�긺�����ڿɼ��û���Χ�ڣ� */
     private void checkOwnership(Long currentUserId, Long objectiveId) {
         OkrObjectiveVO objective = objectiveRepository.queryObjectiveById(objectiveId);
         if (objective == null) {
             throw new AppException(ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getCode(), ResponseCode.OKR_OBJECTIVE_FIND_FAIL.getInfo());
         }
-        List<Long> visibleUserIds = userService.queryVisibleUserIds(currentUserId);
-        if (!visibleUserIds.contains(objective.getOwnerUserId())) {
+        List<Long> editableUserIds = userService.queryEditableUserIds(currentUserId);
+        if (!editableUserIds.contains(objective.getOwnerUserId())) {
             throw new AppException(ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getCode(), ResponseCode.OKR_OBJECTIVE_NO_PERMISSION.getInfo());
         }
     }
 }
+

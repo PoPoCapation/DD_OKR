@@ -95,9 +95,9 @@ public class UserRepository implements IUserRepository {
         Set<Long> current = new HashSet<>(safeList(sysUserRoleDao.queryRoleIdsByUserId(userId)));
         Set<Long> target = new HashSet<>(safeList(roleIds));
 
-        // 要移除的：当前有但目标没有
+        // Ҫ�Ƴ��ģ���ǰ�е�Ŀ��û��
         List<Long> toRemove = current.stream().filter(id -> !target.contains(id)).collect(Collectors.toList());
-        // 要新增的：目标有但当前没有
+        // Ҫ�����ģ�Ŀ���е���ǰû��
         List<Long> toAdd = target.stream().filter(id -> !current.contains(id)).collect(Collectors.toList());
 
         if (!toRemove.isEmpty()) {
@@ -115,7 +115,7 @@ public class UserRepository implements IUserRepository {
             return true;
         }
         Set<Long> current = new HashSet<>(safeList(sysUserRoleDao.queryRoleIdsByUserId(userId)));
-        // 去重：仅插入当前不存在的角色
+        // ȥ�أ������뵱ǰ�����ڵĽ�ɫ
         List<Long> toAdd = roleIds.stream()
                 .filter(id -> !current.contains(id))
                 .distinct()
@@ -170,14 +170,14 @@ public class UserRepository implements IUserRepository {
                 .build();
     }
 
-    /** 构建用户角色关联 PO 列表 */
+    /** �����û���ɫ���� PO �б� */
     private List<SysUserRolePO> buildPOs(Long userId, List<Long> roleIds) {
         return roleIds.stream()
                 .map(roleId -> SysUserRolePO.builder().userId(userId).roleId(roleId).build())
                 .collect(Collectors.toList());
     }
 
-    /** DAO 返回 null 时兜底为空集合，避免 NPE */
+    /** DAO ���� null ʱ����Ϊ�ռ��ϣ����� NPE */
     private <T> List<T> safeList(List<T> list) {
         return list == null ? Collections.emptyList() : list;
     }
@@ -188,7 +188,7 @@ public class UserRepository implements IUserRepository {
         if (scopes == null || scopes.isEmpty()) {
             return "self";
         }
-        // 取最宽：all > dept_and_below > dept > self
+        // ȡ�����all > dept_and_below > dept > self
         if (scopes.contains("all")) return "all";
         if (scopes.contains("dept_and_below")) return "dept_and_below";
         if (scopes.contains("dept")) return "dept";
@@ -210,4 +210,13 @@ public class UserRepository implements IUserRepository {
         }
         return sysUserDao.queryVisibleUserIds(userId);
     }
+
+    @Override
+    public List<Long> queryEditableUserIds(Long userId) {
+        if (userId == null) {
+            return Collections.emptyList();
+        }
+        return sysUserDao.queryEditableUserIds(userId);
+    }
 }
+

@@ -73,4 +73,11 @@
         UPDATE okr_task SET is_deleted = 1 WHERE id = #{id}
     </update>
 
+    <select id="queryByKrId" parameterType="java.lang.Long" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM okr_task
+        WHERE kr_id = #{krId} AND is_deleted = 0
+        ORDER BY priority DESC, createtime DESC
+    </select>
+
 </mapper>

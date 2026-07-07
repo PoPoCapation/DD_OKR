@@ -26,6 +26,9 @@ public interface IUserService {
     /** 查询本部门及所有下级部门ID（含自身，dept_and_below 数据权限用） */
     List<Long> queryDescendantDeptIds(Long deptId);
 
-    /** 查询当前用户汇报关系下可见的用户ID（自己 + 直属上级 + 全部下级递归） */
+    /** 查询当前用户汇报关系下可见的用户ID（自己 + 上级 + 下级递归） */
     List<Long> queryVisibleUserIds(Long userId);
+
+    /** 查询当前用户可编辑的用户ID（自己 + 全部下级递归，不含上级） */
+    List<Long> queryEditableUserIds(Long userId);
 }

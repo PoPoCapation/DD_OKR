@@ -3,6 +3,8 @@ package cn.bugstack.infrastructure.dao;
 import cn.bugstack.infrastructure.dao.po.OkrTaskPO;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 /**
  * Task表 DAO
  */
@@ -20,4 +22,7 @@ public interface IOkrTaskDao {
 
     /** 根据ID逻辑删除Task */
     int delete(Long id);
+
+    /** 根据KR ID查询其下所有任务（不含已删除） */
+    List<OkrTaskPO> queryByKrId(Long krId);
 }
